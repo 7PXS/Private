@@ -48,8 +48,6 @@ local SimpleESP = {
     }
 }
 
-
--- Helper Functions
 local Functions = {}
 
 function Functions:Create(Class, Properties)
@@ -71,63 +69,57 @@ function Functions:FadeOutOnDist(element, distance)
     end
 end
 
--- Abbreviate large numbers for RC Cells display
 function Functions:AbbreviateNumber(num)
     if not num then return "0" end
     if num < 1000 then return tostring(math.floor(num)) end
-    
+
     local suffixes = {"", "K", "M", "B", "T"}
     local index = 1
-    
+
     while num >= 1000 and index < #suffixes do
         num = num / 1000
         index = index + 1
     end
-    
+
     return string.format("%.1f%s", num, suffixes[index])
 end
 
--- Create ESP ScreenGui
 local ScreenGui = Functions:Create("ScreenGui", {
     Parent = CoreGui,
     Name = "SimpleESPHolder",
     ResetOnSpawn = false,
 })
 
--- Check if ESP already exists for player and remove if needed
 local function DupeCheck(plr)
     if ScreenGui:FindFirstChild(plr.Name) then
         ScreenGui[plr.Name]:Destroy()
     end
 end
 
--- Main ESP Function
 local function ApplyESP(plr)
     if plr == LocalPlayer then return end
-    
+
     coroutine.wrap(DupeCheck)(plr)
-    
-    -- Create ESP container
+
     local ESPContainer = Functions:Create("Folder", {
         Parent = ScreenGui,
         Name = plr.Name
     })
-    
-    -- Create ESP elements
+
     local Box = Functions:Create("Frame", {
         Parent = ESPContainer, 
         BackgroundColor3 = Color3.fromRGB(0, 0, 0), 
         BackgroundTransparency = 0.75, 
         BorderSizePixel = 0
     })
-    
+
     local Outline = Functions:Create("UIStroke", {
         Parent = Box, 
         Transparency = 0, 
         Color = SimpleESP.Drawing.Boxes.Full.RGB, 
         LineJoinMode = Enum.LineJoinMode.Miter
     })
-    
+
     local Name = Functions:Create("TextLabel", {
         Parent = ESPContainer, 
         Position = UDim2.new(0.5, 0, 0, -11), 
@@ -141,7 +133,7 @@ local function ApplyESP(plr)
         TextStrokeColor3 = Color3.fromRGB(0, 0, 0), 
         RichText = true
     })
-    
+
     local Distance = Functions:Create("TextLabel", {
         Parent = ESPContainer, 
         Position = UDim2.new(0.5, 0, 0, 11), 
@@ -155,20 +147,20 @@ local function ApplyESP(plr)
         TextStrokeColor3 = Color3.fromRGB(0, 0, 0), 
         RichText = true
     })
-    
+
     local Healthbar = Functions:Create("Frame", {
         Parent = ESPContainer, 
         BackgroundColor3 = Color3.fromRGB(255, 255, 255), 
         BackgroundTransparency = 0
     })
-    
+
     local BehindHealthbar = Functions:Create("Frame", {
         Parent = ESPContainer, 
         ZIndex = -1, 
         BackgroundColor3 = Color3.fromRGB(0, 0, 0), 
         BackgroundTransparency = 0
     })
-    
+
     local HealthbarGradient = Functions:Create("UIGradient", {
         Parent = Healthbar, 
         Enabled = SimpleESP.Drawing.Healthbar.Gradient, 
@@ -179,7 +171,7 @@ local function ApplyESP(plr)
             ColorSequenceKeypoint.new(1, SimpleESP.Drawing.Healthbar.GradientRGB3)
         }
     })
-    
+
     local HealthText = Functions:Create("TextLabel", {
         Parent = ESPContainer, 
         Position = UDim2.new(0.5, 0, 0, 31), 
@@ -192,7 +184,7 @@ local function ApplyESP(plr)
         TextStrokeTransparency = 0, 
         TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     })
-    
+
     local RaceInfo = Functions:Create("TextLabel", {
         Parent = ESPContainer, 
         Position = UDim2.new(0.5, 0, 0, 10), 
@@ -205,7 +197,7 @@ local function ApplyESP(plr)
         TextStrokeTransparency = 0, 
         TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     })
-    
+
     local RCCells = Functions:Create("TextLabel", {
         Parent = ESPContainer, 
         Position = UDim2.new(0.5, 0, 0, 71), 
@@ -218,12 +210,10 @@ local function ApplyESP(plr)
         TextStrokeTransparency = 0, 
         TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     })
-    
-    -- Store last RC cells value with update timestamp
+
     local lastRCUpdate = 0
     local rcCellsValue = "0"
-    
-    -- Update ESP function
+
     local function HideESP()
         Box.Visible = false
         Name.Visible = false
@@ -233,20 +223,19 @@ local function ApplyESP(plr)
         HealthText.Visible = false
         RaceInfo.Visible = false
         RCCells.Visible = false
-        
+
         if not plr then
             ESPContainer:Destroy()
         end
     end
-    
-    -- Create update connection
+
     local Connection
     Connection = RunService.RenderStepped:Connect(function()
         if not SimpleESP.Enabled then 
             HideESP()
             return
         end
-        
+
         if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
             local HRP = plr.Character.HumanoidRootPart
             local Humanoid = plr.Character:WaitForChild("Humanoid");
@@ -257,8 +246,7 @@ local function ApplyESP(plr)
                 local Size = HRP.Size.Y
                 local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
                 local w, h = 3 * scaleFactor, 4.5 * scaleFactor
-                
-                -- Fade-out effect for distance
+
                 if SimpleESP.FadeOut.OnDistance then
                     Functions:FadeOutOnDist(Box, Dist)
                     Functions:FadeOutOnDist(Outline, Dist)
@@ -270,36 +258,33 @@ local function ApplyESP(plr)
                     Functions:FadeOutOnDist(RaceInfo, Dist)
                     Functions:FadeOutOnDist(RCCells, Dist)
                 end
-                
-                -- Apply Box ESP
+
                 Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
                 Box.Size = UDim2.new(0, w, 0, h)
                 Box.Visible = SimpleESP.Drawing.Boxes.Full.Enabled
-                
+
                 if SimpleESP.Drawing.Boxes.Filled.Enabled then
                     Box.BackgroundTransparency = SimpleESP.Drawing.Boxes.Filled.Transparency
                     Box.BackgroundColor3 = SimpleESP.Drawing.Boxes.Filled.RGB
                 else
                     Box.BackgroundTransparency = 1
                 end
-                
-                -- Apply Healthbar ESP
+
                 local health = Humanoid.Health / Humanoid.MaxHealth
                 Healthbar.Visible = SimpleESP.Drawing.Healthbar.Enabled
                 Healthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - health))
                 Healthbar.Size = UDim2.new(0, SimpleESP.Drawing.Healthbar.Width, 0, h * health)
-                
+
                 BehindHealthbar.Visible = SimpleESP.Drawing.Healthbar.Enabled
                 BehindHealthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2)
                 BehindHealthbar.Size = UDim2.new(0, SimpleESP.Drawing.Healthbar.Width, 0, h)
-                
-                -- Health text
+
                 if SimpleESP.Drawing.Healthbar.HealthText then
                     local healthPercentage = math.floor(Humanoid.Health / Humanoid.MaxHealth * 100)
                     HealthText.Position = UDim2.new(0, Pos.X - w / 2 - 20, 0, Pos.Y - h / 2 + h * (1 - healthPercentage / 100) + 3)
                     HealthText.Text = tostring(healthPercentage)
                     HealthText.Visible = SimpleESP.Drawing.Healthbar.Enabled
-                    
+
                     if SimpleESP.Drawing.Healthbar.Lerp then
                         local color = health >= 0.75 and Color3.fromRGB(0, 255, 0) or 
                                      health >= 0.5 and Color3.fromRGB(255, 255, 0) or 
@@ -310,8 +295,7 @@ local function ApplyESP(plr)
                         HealthText.TextColor3 = SimpleESP.Drawing.Healthbar.HealthTextRGB
                     end
                 end
-                
--- Names ESP
+
 Name.Visible = SimpleESP.Drawing.Names.Enabled
 local rankValue = plr.Character:FindFirstChild("Rank") and tonumber(plr.Character.Rank.Value) or 0
 local Race = plr.Character:FindFirstChild("Race") and plr.Character.Race.Value or "Unknown"
@@ -329,36 +313,33 @@ end
 Name.Text = plr.Name .. rankText
 Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 15)
 
--- Distance ESP
 Distance.Visible = SimpleESP.Drawing.Distances.Enabled
 Distance.Text = string.format("%d meters", math.floor(Dist))
 Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
 
--- Race Information
 local raceDisplayText = Race
-local raceColor = Color3.fromRGB(0, 248, 112) -- Default white
+local raceColor = Color3.fromRGB(0, 248, 112) 
 
 if Race == "Ghoul" then
-    raceColor = Color3.fromRGB(255, 0, 0) -- Red for Ghouls
+    raceColor = Color3.fromRGB(255, 0, 0) 
 elseif Race == "Human" then
-    raceDisplayText = "CCG" -- Change Human to CCG
-    raceColor = Color3.fromRGB(0, 0, 255) -- Blue for CCG
+    raceDisplayText = "CCG" 
+    raceColor = Color3.fromRGB(0, 0, 255) 
 end
 
 RaceInfo.Text = raceDisplayText
 RaceInfo.TextColor3 = raceColor
 RaceInfo.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 24)
-                
-                -- RC Cells (Update every 10 seconds to save performance)
+
                 if tick() - lastRCUpdate > 10 then
                     lastRCUpdate = tick()
                     rcCellsValue = Functions:AbbreviateNumber(plr.Character:GetAttribute("RCCells") or 0)
                 end
-                
+
                 RCCells.Text = "RC: " .. rcCellsValue
                 RCCells.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 34)
                 RCCells.Visible = true
-                
+
             else
                 HideESP()
             end
@@ -366,8 +347,7 @@ RaceInfo.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 24)
             HideESP()
         end
     end)
-    
-    -- Clean up when player leaves
+
     plr.AncestryChanged:Connect(function(_, parent)
         if parent == nil then
             Connection:Disconnect()
@@ -376,27 +356,23 @@ RaceInfo.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 24)
     end)
 end
 
--- Initialize ESP for existing players
 function SimpleESP:Initialize()
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             coroutine.wrap(ApplyESP)(player)
         end
     end
-    
-    -- Handle player joining
+
     Players.PlayerAdded:Connect(function(player)
         coroutine.wrap(ApplyESP)(player)
     end)
 end
 
--- Toggle ESP
 function SimpleESP:Toggle(state)
     self.Enabled = state or not self.Enabled
     return self.Enabled
 end
 
--- Initialize the ESP
 SimpleESP:Initialize()
 print("Ran Script")
 
