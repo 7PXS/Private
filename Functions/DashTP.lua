@@ -66,7 +66,6 @@ function DashTP(target)
 
     localPlayer.Character.HumanoidRootPart.CFrame = targetCFrame
     
-    -- AFTER teleporting, fire the dash remote (for animation only)
     local args = {
         [1] = {
             [1] = {
