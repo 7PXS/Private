@@ -44,6 +44,17 @@ local SimpleESP = {
                 Enabled = false,
                 RGB = Color3.fromRGB(17, 168, 255),
             },
+        },
+        RaceInfo = {
+            Enabled = false,
+            CCGColor = Color3.fromRGB(0, 0, 255),
+            GhoulColor = Color3.fromRGB(255, 0, 0),
+            OtherColor = Color3.fromRGB(0, 248, 112),
+        },
+        RCCells = {
+            Enabled = false,
+            RGB = Color3.fromRGB(255, 0, 0),
+            UpdateInterval = 10,
         }
     }
 }
@@ -204,7 +215,7 @@ local function ApplyESP(plr)
         Size = UDim2.new(0, 100, 0, 20), 
         AnchorPoint = Vector2.new(0.5, 0.5), 
         BackgroundTransparency = 1, 
-        TextColor3 = Color3.fromRGB(255, 0, 0), 
+        TextColor3 = SimpleESP.Drawing.RCCells.RGB, 
         Font = Enum.Font.Code, 
         TextSize = SimpleESP.FontSize, 
         TextStrokeTransparency = 0, 
@@ -296,49 +307,57 @@ local function ApplyESP(plr)
                     end
                 end
 
-Name.Visible = SimpleESP.Drawing.Names.Enabled
-local rankValue = plr.Character:FindFirstChild("Rank") and tonumber(plr.Character.Rank.Value) or 0
-local Race = plr.Character:FindFirstChild("Race") and plr.Character.Race.Value or "Unknown"
-local maxRank = (Race == "Ghoul") and 10 or 9
-local rankText = ""
+                Name.Visible = SimpleESP.Drawing.Names.Enabled
+                local rankValue = plr.Character:FindFirstChild("Rank") and tonumber(plr.Character.Rank.Value) or 0
+                local Race = plr.Character:FindFirstChild("Race") and plr.Character.Race.Value or "Unknown"
+                local maxRank = (Race == "Ghoul") and 10 or 9
+                local rankText = ""
 
-if rankValue > 0 then
-    if rankValue >= maxRank then
-        rankText = " [Max Rank]"
-    else
-        rankText = " [R" .. rankValue .. "/" .. maxRank .. "]"
-    end
-end
-
-Name.Text = plr.Name .. rankText
-Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 15)
-
-Distance.Visible = SimpleESP.Drawing.Distances.Enabled
-Distance.Text = string.format("%d meters", math.floor(Dist))
-Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
-
-local raceDisplayText = Race
-local raceColor = Color3.fromRGB(0, 248, 112) 
-
-if Race == "Ghoul" then
-    raceColor = Color3.fromRGB(255, 0, 0) 
-elseif Race == "Human" then
-    raceDisplayText = "CCG" 
-    raceColor = Color3.fromRGB(0, 0, 255) 
-end
-
-RaceInfo.Text = raceDisplayText
-RaceInfo.TextColor3 = raceColor
-RaceInfo.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 24)
-
-                if tick() - lastRCUpdate > 10 then
-                    lastRCUpdate = tick()
-                    rcCellsValue = Functions:AbbreviateNumber(plr.Character:GetAttribute("RCCells") or 0)
+                if rankValue > 0 then
+                    if rankValue >= maxRank then
+                        rankText = " [Max Rank]"
+                    else
+                        rankText = " [R" .. rankValue .. "/" .. maxRank .. "]"
+                    end
                 end
 
-                RCCells.Text = "RC: " .. rcCellsValue
-                RCCells.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 34)
-                RCCells.Visible = true
+                Name.Text = plr.Name .. rankText
+                Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 15)
+
+                Distance.Visible = SimpleESP.Drawing.Distances.Enabled
+                Distance.Text = string.format("%d meters", math.floor(Dist))
+                Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
+
+                -- Race Info handling
+                RaceInfo.Visible = SimpleESP.Drawing.RaceInfo.Enabled
+                if SimpleESP.Drawing.RaceInfo.Enabled then
+                    local raceDisplayText = Race
+                    local raceColor = SimpleESP.Drawing.RaceInfo.OtherColor
+
+                    if Race == "Ghoul" then
+                        raceColor = SimpleESP.Drawing.RaceInfo.GhoulColor
+                    elseif Race == "Human" then
+                        raceDisplayText = "CCG" 
+                        raceColor = SimpleESP.Drawing.RaceInfo.CCGColor
+                    end
+
+                    RaceInfo.Text = raceDisplayText
+                    RaceInfo.TextColor3 = raceColor
+                    RaceInfo.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 24)
+                end
+
+                -- RC Cells handling
+                RCCells.Visible = SimpleESP.Drawing.RCCells.Enabled
+                if SimpleESP.Drawing.RCCells.Enabled then
+                    if tick() - lastRCUpdate > SimpleESP.Drawing.RCCells.UpdateInterval then
+                        lastRCUpdate = tick()
+                        rcCellsValue = Functions:AbbreviateNumber(plr.Character:GetAttribute("RCCells") or 0)
+                    end
+
+                    RCCells.Text = "RC: " .. rcCellsValue
+                    RCCells.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 34)
+                    RCCells.TextColor3 = SimpleESP.Drawing.RCCells.RGB
+                end
 
             else
                 HideESP()
