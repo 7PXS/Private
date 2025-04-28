@@ -1,4 +1,4 @@
-local SimpleESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/7PXS/GHOUL-RE/refs/heads/main/soruce/library.lua"))()
+local SimpleESP = loadstring(game:HttpGet("https://production--skider.netlify.app/Ghoul-RE/Esp-Library/Source/Library.lua"))()
 
 repeat wait() until game:IsLoaded()
 
