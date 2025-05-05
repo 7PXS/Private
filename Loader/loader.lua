@@ -1,5 +1,3 @@
-getgenv().scriptkey = "BnJwlWwJyvWnnEVooJjesEdIOGrnITxu" 
-
 local player = game.Players.LocalPlayer
 local script_key = getgenv().scriptkey
 local repo = "https://production--skider.netlify.app/ObsidianUI/Source/"
