@@ -6,16 +6,16 @@ local LocalPlayer = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 
 local SimpleESP = {
-    Enabled = false,
+    Enabled = true,
     TeamCheck = false,
     MaxDistance = 500,
-    FontSize = 11,
+    FontSize = 13,
     FadeOut = {
-        OnDistance = false,
+        OnDistance = true,
     },
-    ShowPlayers = false,
-    ShowMobs = false,
-    ShowNPCs = false,
+    ShowPlayers = true,
+    ShowMobs = true,
+    ShowNPCs = true,
 
     Position = {
         TOP = "TOP",
@@ -34,22 +34,22 @@ local SimpleESP = {
     ESP = {
         Player = {
             Name = {
-                Enabled = false,
+                Enabled = true,
                 Position = "TOP", 
-                RGB = Color3.fromRGB(255, 255, 255),
+                RGB = Color3.fromRGB(0, 174, 255),
                 Offset = 0, 
             },
             Distance = {
-                Enabled = false,
+                Enabled = true,
                 Position = "BOTTOM", 
-                RGB = Color3.fromRGB(255, 255, 255),
+                RGB = Color3.fromRGB(200, 200, 200),
                 Offset = 0, 
             },
             Weapon = {
-                Enabled = false,
+                Enabled = true,
                 Position = "BOTTOM", 
                 RGB = Color3.fromRGB(255, 230, 0),
-                Offset = 8, 
+                Offset = 15, 
             },
             Box = {
                 Style = "CORNERS", 
@@ -58,44 +58,44 @@ local SimpleESP = {
                 FilledRGB = Color3.fromRGB(0, 0, 0),
             },
             Healthbar = {
-                Enabled = false,
+                Enabled = true,
                 Position = "LEFT", 
                 Offset = 6, 
                 Width = 2.5,
                 HealthText = {
-                    Enabled = false,
+                    Enabled = true,
                     Position = "LEFT", 
                     Offset = 0, 
                     RGB = Color3.fromRGB(255, 255, 255),
                 },
                 Gradient = true,
-                GradientRGB1 = Color3.fromRGB(200, 0, 0),
-                GradientRGB2 = Color3.fromRGB(60, 60, 125),
+                GradientRGB1 = Color3.fromRGB(255, 0, 0),
+                GradientRGB2 = Color3.fromRGB(255, 255, 0),
                 GradientRGB3 = Color3.fromRGB(0, 255, 0),
                 Lerp = false,
             }
         },
         Mob = {
             Name = {
-                Enabled = false,
+                Enabled = true,
                 Position = "TOP",
-                RGB = Color3.fromRGB(255, 100, 100),
+                RGB = Color3.fromRGB(255, 11, 11),
                 Offset = 0,
             },
             Distance = {
-                Enabled = false,
+                Enabled = true,
                 Position = "BOTTOM",
-                RGB = Color3.fromRGB(255, 255, 255),
+                RGB = Color3.fromRGB(200, 200, 200),
                 Offset = 0,
             },
             Box = {
                 Style = "CORNERS",
-                RGB = Color3.fromRGB(255, 100, 100),
+                RGB = Color3.fromRGB(21, 161, 255),
                 FilledTransparency = 0.75,
                 FilledRGB = Color3.fromRGB(0, 0, 0),
             },
             Healthbar = {
-                Enabled = false,
+                Enabled = true,
                 Position = "LEFT",
                 Offset = 6,
                 Width = 2.5,
@@ -106,26 +106,25 @@ local SimpleESP = {
                     RGB = Color3.fromRGB(255, 255, 255),
                 },
                 Gradient = true,
-                GradientRGB1 = Color3.fromRGB(200, 0, 0),
-                GradientRGB2 = Color3.fromRGB(60, 60, 125),
+                GradientRGB1 = Color3.fromRGB(255, 0, 0),
+                GradientRGB2 = Color3.fromRGB(255, 255, 0),
                 GradientRGB3 = Color3.fromRGB(0, 255, 0),
                 Lerp = true,
             }
         },
         NPC = {
             Name = {
-                Enabled = false,
+                Enabled = true,
                 Position = "TOP",
                 RGB = Color3.fromRGB(0, 255, 100),
                 Offset = 0,
             },
             Distance = {
-                Enabled = false,
+                Enabled = true,
                 Position = "BOTTOM", 
-                RGB = Color3.fromRGB(255, 255, 255),
+                RGB = Color3.fromRGB(200, 200, 200),
                 Offset = 0,
             }
-
         }
     }
 }
