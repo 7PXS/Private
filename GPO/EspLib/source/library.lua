@@ -16,49 +16,116 @@ local SimpleESP = {
     ShowPlayers = true,
     ShowMobs = true,
     ShowNPCs = true,
-    Drawing = {
-        Names = {
-            Enabled = true,
-            RGB = Color3.fromRGB(255, 255, 255),
-        },
-        Distances = {
-            Enabled = true, 
-            Position = "Text",
-            RGB = Color3.fromRGB(255, 255, 255),
-        },
-        Healthbar = {
-            Enabled = true,  
-            HealthText = true, 
-            Lerp = true, 
-            HealthTextRGB = Color3.fromRGB(255, 255, 255),
-            Width = 2.5,
-            Gradient = true, 
-            GradientRGB1 = Color3.fromRGB(200, 0, 0), 
-            GradientRGB2 = Color3.fromRGB(60, 60, 125), 
-            GradientRGB3 = Color3.fromRGB(0, 255, 0), 
-        },
-        Boxes = {
-            Filled = {
+
+    Position = {
+        TOP = "TOP",
+        BOTTOM = "BOTTOM",
+        LEFT = "LEFT",
+        RIGHT = "RIGHT"
+    },
+
+    BoxStyle = {
+        NONE = "NONE",
+        FULL = "FULL",
+        CORNERS = "CORNERS",
+        FILLED = "FILLED"
+    },
+
+    ESP = {
+        Player = {
+            Name = {
                 Enabled = true,
-                Transparency = 0.75,
-                RGB = Color3.fromRGB(0, 0, 0),
+                Position = "TOP", 
+                RGB = Color3.fromRGB(255, 255, 255),
+                Offset = 0, 
             },
-            Full = {
+            Distance = {
                 Enabled = true,
+                Position = "BOTTOM", 
+                RGB = Color3.fromRGB(255, 255, 255),
+                Offset = 0, 
+            },
+            Weapon = {
+                Enabled = true,
+                Position = "BOTTOM", 
+                RGB = Color3.fromRGB(255, 230, 0),
+                Offset = 8, 
+            },
+            Box = {
+                Style = "CORNERS", 
                 RGB = Color3.fromRGB(17, 168, 255),
+                FilledTransparency = 0.75,
+                FilledRGB = Color3.fromRGB(0, 0, 0),
             },
+            Healthbar = {
+                Enabled = true,
+                Position = "LEFT", 
+                Offset = 6, 
+                Width = 2.5,
+                HealthText = {
+                    Enabled = true,
+                    Position = "LEFT", 
+                    Offset = 0, 
+                    RGB = Color3.fromRGB(255, 255, 255),
+                },
+                Gradient = true,
+                GradientRGB1 = Color3.fromRGB(200, 0, 0),
+                GradientRGB2 = Color3.fromRGB(60, 60, 125),
+                GradientRGB3 = Color3.fromRGB(0, 255, 0),
+                Lerp = true,
+            }
         },
-        Weapon = {
-            Enabled = true,
-            RGB = Color3.fromRGB(255, 230, 0)
+        Mob = {
+            Name = {
+                Enabled = true,
+                Position = "TOP",
+                RGB = Color3.fromRGB(255, 100, 100),
+                Offset = 0,
+            },
+            Distance = {
+                Enabled = true,
+                Position = "BOTTOM",
+                RGB = Color3.fromRGB(255, 255, 255),
+                Offset = 0,
+            },
+            Box = {
+                Style = "CORNERS",
+                RGB = Color3.fromRGB(255, 100, 100),
+                FilledTransparency = 0.75,
+                FilledRGB = Color3.fromRGB(0, 0, 0),
+            },
+            Healthbar = {
+                Enabled = true,
+                Position = "LEFT",
+                Offset = 6,
+                Width = 2.5,
+                HealthText = {
+                    Enabled = true,
+                    Position = "LEFT",
+                    Offset = 0,
+                    RGB = Color3.fromRGB(255, 255, 255),
+                },
+                Gradient = true,
+                GradientRGB1 = Color3.fromRGB(200, 0, 0),
+                GradientRGB2 = Color3.fromRGB(60, 60, 125),
+                GradientRGB3 = Color3.fromRGB(0, 255, 0),
+                Lerp = true,
+            }
         },
-        MobInfo = {
-            Enabled = true,
-            RGB = Color3.fromRGB(255, 100, 100),
-        },
-        NPCInfo = {
-            Enabled = true,
-            RGB = Color3.fromRGB(0, 255, 100),
+        NPC = {
+            Name = {
+                Enabled = true,
+                Position = "TOP",
+                RGB = Color3.fromRGB(0, 255, 100),
+                Offset = 0,
+            },
+            Distance = {
+                Enabled = true,
+                Position = "BOTTOM", 
+                RGB = Color3.fromRGB(255, 255, 255),
+                Offset = 0,
+            }
+
         }
     }
 }
@@ -129,31 +196,144 @@ end
 
 local function GetEntityType(entity)
     if IsNPC(entity) then
-        return "npc"
+        return "NPC"
     elseif Players:GetPlayerFromCharacter(entity) then
-        return "player"
+        return "Player"
     else
-        return "mob"
+        return "Mob"
     end
 end
 
 local function GetEntityName(entity, entityType)
-    if entityType == "player" then
+    if entityType == "Player" then
         return entity.Name
-    elseif entityType == "mob" then
+    elseif entityType == "Mob" then
         return entity.Name .. " [Mob]"
-    elseif entityType == "npc" then
+    elseif entityType == "NPC" then
         return entity.Name .. " [NPC]"
     else
         return entity.Name
     end
 end
 
-local function ApplyESPToEntity(entity, entityType)
+local function GetYOffsetForPosition(config, position, offset)
+    local baseY = 0
 
-    entityType = entityType or GetEntityType(entity)
+    if position == SimpleESP.Position.TOP then
+        baseY = -15 - offset
+    elseif position == SimpleESP.Position.BOTTOM then
+        baseY = 7 + offset
+    end
 
-    if entityType == "player" and entity.Name == LocalPlayer.Name then return end
+    return baseY
+end
+
+local function GetHealthbarPosition(config, boxPosX, boxPosY, boxWidth, boxHeight)
+    local pos = config.Position
+    local offset = config.Offset
+
+    if pos == SimpleESP.Position.LEFT then
+        return UDim2.new(0, boxPosX - offset, 0, boxPosY)
+    elseif pos == SimpleESP.Position.RIGHT then
+        return UDim2.new(0, boxPosX + boxWidth + offset - config.Width, 0, boxPosY)
+    end
+
+    return UDim2.new(0, boxPosX - offset, 0, boxPosY)
+end
+
+local function CreateCornerBox(container, color)
+    local corners = {}
+    local cornerLength = 5
+
+    for i = 1, 8 do
+
+        corners[i] = Functions:Create("Frame", {
+            Parent = container,
+            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+            BorderSizePixel = 0,
+            ZIndex = 1, 
+            BackgroundTransparency = 0,
+            Visible = false 
+        })
+
+        corners[i + 8] = Functions:Create("Frame", {
+            Parent = container,
+            BackgroundColor3 = color,
+            BorderSizePixel = 0,
+            ZIndex = 2, 
+            BackgroundTransparency = 0,
+            Visible = false 
+        })
+    end
+
+    return corners
+end
+
+local function UpdateCornerBox(corners, x, y, w, h)
+    local cornerLength = math.min(w, h) * 0.2 
+    local outlineThickness = 1.5 
+
+    corners[1].Position = UDim2.new(0, x - outlineThickness, 0, y - outlineThickness)
+    corners[1].Size = UDim2.new(0, cornerLength + outlineThickness * 2, 0, outlineThickness * 2)
+
+    corners[2].Position = UDim2.new(0, x - outlineThickness, 0, y - outlineThickness)
+    corners[2].Size = UDim2.new(0, outlineThickness * 2, 0, cornerLength + outlineThickness * 2)
+
+    corners[3].Position = UDim2.new(0, x + w - cornerLength - outlineThickness, 0, y - outlineThickness)
+    corners[3].Size = UDim2.new(0, cornerLength + outlineThickness * 2, 0, outlineThickness * 2)
+
+    corners[4].Position = UDim2.new(0, x + w - outlineThickness, 0, y - outlineThickness)
+    corners[4].Size = UDim2.new(0, outlineThickness * 2, 0, cornerLength + outlineThickness * 2)
+
+    corners[5].Position = UDim2.new(0, x - outlineThickness, 0, y + h - outlineThickness)
+    corners[5].Size = UDim2.new(0, cornerLength + outlineThickness * 2, 0, outlineThickness * 2)
+
+    corners[6].Position = UDim2.new(0, x - outlineThickness, 0, y + h - cornerLength - outlineThickness)
+    corners[6].Size = UDim2.new(0, outlineThickness * 2, 0, cornerLength + outlineThickness * 2)
+
+    corners[7].Position = UDim2.new(0, x + w - cornerLength - outlineThickness, 0, y + h - outlineThickness)
+    corners[7].Size = UDim2.new(0, cornerLength + outlineThickness * 2, 0, outlineThickness * 2)
+
+    corners[8].Position = UDim2.new(0, x + w - outlineThickness, 0, y + h - cornerLength - outlineThickness)
+    corners[8].Size = UDim2.new(0, outlineThickness * 2, 0, cornerLength + outlineThickness * 2)
+
+    corners[9].Position = UDim2.new(0, x, 0, y)
+    corners[9].Size = UDim2.new(0, cornerLength, 0, 1)
+
+    corners[10].Position = UDim2.new(0, x, 0, y)
+    corners[10].Size = UDim2.new(0, 1, 0, cornerLength)
+
+    corners[11].Position = UDim2.new(0, x + w - cornerLength, 0, y)
+    corners[11].Size = UDim2.new(0, cornerLength, 0, 1)
+
+    corners[12].Position = UDim2.new(0, x + w - 1, 0, y)
+    corners[12].Size = UDim2.new(0, 1, 0, cornerLength)
+
+    corners[13].Position = UDim2.new(0, x, 0, y + h - 1)
+    corners[13].Size = UDim2.new(0, cornerLength, 0, 1)
+
+    corners[14].Position = UDim2.new(0, x, 0, y + h - cornerLength)
+    corners[14].Size = UDim2.new(0, 1, 0, cornerLength)
+
+    corners[15].Position = UDim2.new(0, x + w - cornerLength, 0, y + h - 1)
+    corners[15].Size = UDim2.new(0, cornerLength, 0, 1)
+
+    corners[16].Position = UDim2.new(0, x + w - 1, 0, y + h - cornerLength)
+    corners[16].Size = UDim2.new(0, 1, 0, cornerLength)
+
+    for i = 1, 16 do
+        corners[i].Visible = true
+    end
+end
+
+local function ApplyESPToEntity(entity)
+
+    local entityType = GetEntityType(entity)
+
+    if entityType == "Player" and entity.Name == LocalPlayer.Name then return end
+
+    local config = SimpleESP.ESP[entityType]
+    if not config then return end
 
     local entityName = GetEntityName(entity, entityType)
     local uniqueId = entity.Name .. "_" .. (math.random(1000, 9999))
@@ -164,136 +344,144 @@ local function ApplyESPToEntity(entity, entityType)
         Name = uniqueId
     })
 
-    local Box, Outline
-    if entityType ~= "npc" then
-        Box = Functions:Create("Frame", {
-            Parent = ESPContainer, 
-            BackgroundColor3 = Color3.fromRGB(0, 0, 0), 
-            BackgroundTransparency = 0.75, 
-            BorderSizePixel = 0
-        })
+    local components = {}
 
-        local outlineColor
-        if entityType == "player" then
-            outlineColor = SimpleESP.Drawing.Boxes.Full.RGB
-        else 
-            outlineColor = SimpleESP.Drawing.MobInfo.RGB
-        end
-
-        Outline = Functions:Create("UIStroke", {
-            Parent = Box, 
-            Transparency = 0, 
-            Color = outlineColor, 
-            LineJoinMode = Enum.LineJoinMode.Miter
-        })
-    end
-
-    local nameColor
-    if entityType == "player" then
-        nameColor = SimpleESP.Drawing.Names.RGB
-    elseif entityType == "mob" then
-        nameColor = SimpleESP.Drawing.MobInfo.RGB
-    elseif entityType == "npc" then
-        nameColor = SimpleESP.Drawing.NPCInfo.RGB
-    else
-        nameColor = Color3.fromRGB(255, 255, 255)
-    end
-
-    local Name = Functions:Create("TextLabel", {
+    components.Box = Functions:Create("Frame", {
         Parent = ESPContainer, 
-        Position = UDim2.new(0.5, 0, 0, -11), 
-        Size = UDim2.new(0, 150, 0, 20), 
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0), 
+        BackgroundTransparency = 1, 
+        BorderSizePixel = 0,
+        Visible = false 
+    })
+
+    components.BoxOutline = Functions:Create("UIStroke", {
+        Parent = components.Box, 
+        Transparency = 1, 
+        Color = config.Box and config.Box.RGB or Color3.fromRGB(255, 255, 255), 
+        LineJoinMode = Enum.LineJoinMode.Miter
+    })
+
+    components.BoxBlackOutline = Functions:Create("UIStroke", {
+        Parent = components.Box, 
+        Transparency = 1, 
+        Color = Color3.fromRGB(0, 0, 0), 
+        LineJoinMode = Enum.LineJoinMode.Miter,
+        Thickness = 1.5 
+    })
+
+    components.Corners = config.Box and config.Box.Style == SimpleESP.BoxStyle.CORNERS and 
+        CreateCornerBox(ESPContainer, config.Box.RGB) or {}
+
+    components.Name = Functions:Create("TextLabel", {
+        Parent = ESPContainer, 
+        Position = UDim2.new(0.5, 0, 0, 0), 
+        Size = UDim2.new(0, 150, 0, 20),
         AnchorPoint = Vector2.new(0.5, 0.5), 
         BackgroundTransparency = 1, 
-        TextColor3 = nameColor, 
+        TextColor3 = config.Name and config.Name.RGB or Color3.fromRGB(255, 255, 255), 
         Font = Enum.Font.Code, 
         TextSize = SimpleESP.FontSize, 
         TextStrokeTransparency = 0, 
         TextStrokeColor3 = Color3.fromRGB(0, 0, 0), 
         RichText = true,
-        TextXAlignment = Enum.TextXAlignment.Center 
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Visible = false 
     })
 
-    local Distance = Functions:Create("TextLabel", {
+    components.Distance = Functions:Create("TextLabel", {
         Parent = ESPContainer, 
-        Position = UDim2.new(0.5, 0, 0, 11), 
+        Position = UDim2.new(0.5, 0, 0, 0), 
         Size = UDim2.new(0, 100, 0, 20), 
         AnchorPoint = Vector2.new(0.5, 0.5), 
         BackgroundTransparency = 1, 
-        TextColor3 = SimpleESP.Drawing.Distances.RGB, 
+        TextColor3 = config.Distance and config.Distance.RGB or Color3.fromRGB(255, 255, 255), 
         Font = Enum.Font.Code, 
         TextSize = SimpleESP.FontSize, 
         TextStrokeTransparency = 0, 
         TextStrokeColor3 = Color3.fromRGB(0, 0, 0), 
         RichText = true,
-        TextXAlignment = Enum.TextXAlignment.Center 
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Visible = false 
     })
 
-    local Healthbar, BehindHealthbar, HealthbarGradient, HealthText
-    if entityType ~= "npc" then
-        Healthbar = Functions:Create("Frame", {
-            Parent = ESPContainer, 
-            BackgroundColor3 = Color3.fromRGB(255, 255, 255), 
-            BackgroundTransparency = 0
-        })
-
-        BehindHealthbar = Functions:Create("Frame", {
-            Parent = ESPContainer, 
-            ZIndex = -1, 
-            BackgroundColor3 = Color3.fromRGB(0, 0, 0), 
-            BackgroundTransparency = 0
-        })
-
-        HealthbarGradient = Functions:Create("UIGradient", {
-            Parent = Healthbar, 
-            Enabled = SimpleESP.Drawing.Healthbar.Gradient, 
-            Rotation = -90, 
-            Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0, SimpleESP.Drawing.Healthbar.GradientRGB1), 
-                ColorSequenceKeypoint.new(0.5, SimpleESP.Drawing.Healthbar.GradientRGB2), 
-                ColorSequenceKeypoint.new(1, SimpleESP.Drawing.Healthbar.GradientRGB3)
-            }
-        })
-
-        HealthText = Functions:Create("TextLabel", {
-            Parent = ESPContainer, 
-            Position = UDim2.new(0.5, 0, 0, 31), 
-            Size = UDim2.new(0, 100, 0, 20), 
-            AnchorPoint = Vector2.new(0.5, 0.5), 
-            BackgroundTransparency = 1, 
-            TextColor3 = SimpleESP.Drawing.Healthbar.HealthTextRGB, 
-            Font = Enum.Font.Code, 
-            TextSize = SimpleESP.FontSize, 
-            TextStrokeTransparency = 0, 
-            TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
-            TextXAlignment = Enum.TextXAlignment.Center 
-        })
-    end
-
-    local WeaponInfo = Functions:Create("TextLabel", {
+    components.Weapon = Functions:Create("TextLabel", {
         Parent = ESPContainer, 
-        Position = UDim2.new(0.5, 0, 0, 48), 
+        Position = UDim2.new(0.5, 0, 0, 0), 
         Size = UDim2.new(0, 120, 0, 20), 
         AnchorPoint = Vector2.new(0.5, 0.5), 
         BackgroundTransparency = 1, 
-        TextColor3 = SimpleESP.Drawing.Weapon.RGB, 
+        TextColor3 = config.Weapon and config.Weapon.RGB or Color3.fromRGB(255, 230, 0), 
         Font = Enum.Font.Code, 
         TextSize = SimpleESP.FontSize, 
         TextStrokeTransparency = 0, 
         TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
-        TextXAlignment = Enum.TextXAlignment.Center 
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Visible = false 
     })
 
-    local function HideESP()
-        Name.Visible = false
-        Distance.Visible = false
-        WeaponInfo.Visible = false
+    if entityType ~= "NPC" and config.Healthbar then
+        components.Healthbar = Functions:Create("Frame", {
+            Parent = ESPContainer, 
+            BackgroundColor3 = Color3.fromRGB(255, 255, 255), 
+            BackgroundTransparency = 1, 
+            Visible = false 
+        })
 
-        if entityType ~= "npc" then
-            Box.Visible = false
-            Healthbar.Visible = false
-            BehindHealthbar.Visible = false
-            HealthText.Visible = false
+        components.BehindHealthbar = Functions:Create("Frame", {
+            Parent = ESPContainer, 
+            ZIndex = -1, 
+            BackgroundColor3 = Color3.fromRGB(0, 0, 0), 
+            BackgroundTransparency = 1, 
+            Visible = false 
+        })
+
+        if config.Healthbar.Gradient then
+            components.HealthbarGradient = Functions:Create("UIGradient", {
+                Parent = components.Healthbar, 
+                Enabled = true, 
+                Rotation = -90, 
+                Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0, config.Healthbar.GradientRGB1), 
+                    ColorSequenceKeypoint.new(0.5, config.Healthbar.GradientRGB2), 
+                    ColorSequenceKeypoint.new(1, config.Healthbar.GradientRGB3)
+                }
+            })
+        end
+
+        if config.Healthbar.HealthText and config.Healthbar.HealthText.Enabled then
+            components.HealthText = Functions:Create("TextLabel", {
+                Parent = ESPContainer, 
+                Position = UDim2.new(0.5, 0, 0, 0), 
+                Size = UDim2.new(0, 100, 0, 20), 
+                AnchorPoint = Vector2.new(0.5, 0.5), 
+                BackgroundTransparency = 1, 
+                TextColor3 = config.Healthbar.HealthText.RGB, 
+                Font = Enum.Font.Code, 
+                TextSize = SimpleESP.FontSize, 
+                TextStrokeTransparency = 0, 
+                TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+                TextXAlignment = Enum.TextXAlignment.Center,
+                Visible = false 
+            })
+        end
+    end
+
+    local function HideAllComponents()
+        for name, component in pairs(components) do
+            if typeof(component) == "Instance" then
+
+                if component:IsA("GuiObject") then  
+                    component.Visible = false
+                elseif component:IsA("UIStroke") then
+                    component.Transparency = 1  
+                end
+            elseif type(component) == "table" then
+                for _, part in pairs(component) do
+                    if typeof(part) == "Instance" and part:IsA("GuiObject") then
+                        part.Visible = false
+                    end
+                end
+            end
         end
 
         if not entity or not entity.Parent then
@@ -304,22 +492,22 @@ local function ApplyESPToEntity(entity, entityType)
     local Connection
     Connection = RunService.RenderStepped:Connect(function()
         if not SimpleESP.Enabled then 
-            HideESP()
+            HideAllComponents()
             return
         end
 
-        if entityType == "player" and not SimpleESP.ShowPlayers then
-            HideESP()
+        if entityType == "Player" and not SimpleESP.ShowPlayers then
+            HideAllComponents()
             return
         end
 
-        if entityType == "mob" and not SimpleESP.ShowMobs then
-            HideESP()
+        if entityType == "Mob" and not SimpleESP.ShowMobs then
+            HideAllComponents()
             return
         end
 
-        if entityType == "npc" and not SimpleESP.ShowNPCs then
-            HideESP()
+        if entityType == "NPC" and not SimpleESP.ShowNPCs then
+            HideAllComponents()
             return
         end
 
@@ -328,7 +516,7 @@ local function ApplyESPToEntity(entity, entityType)
             local Humanoid = entity:FindFirstChild("Humanoid")
 
             if not Humanoid then
-                HideESP()
+                HideAllComponents()
                 return
             end
 
@@ -345,83 +533,172 @@ local function ApplyESPToEntity(entity, entityType)
                 local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
                 local w, h = 3 * scaleFactor, 4.5 * scaleFactor
 
+                local boxX, boxY = Pos.X - w / 2, Pos.Y - h / 2
+
                 if SimpleESP.FadeOut.OnDistance then
-                    Functions:FadeOutOnDist(Name, Dist)
-                    Functions:FadeOutOnDist(Distance, Dist)
-                    Functions:FadeOutOnDist(WeaponInfo, Dist)
-
-                    if entityType ~= "npc" then
-                        Functions:FadeOutOnDist(Box, Dist)
-                        Functions:FadeOutOnDist(Outline, Dist)
-                        Functions:FadeOutOnDist(Healthbar, Dist)
-                        Functions:FadeOutOnDist(BehindHealthbar, Dist)
-                        Functions:FadeOutOnDist(HealthText, Dist)
-                    end
-                end
-
-                if entityType ~= "npc" then
-                    Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
-                    Box.Size = UDim2.new(0, w, 0, h)
-                    Box.Visible = SimpleESP.Drawing.Boxes.Full.Enabled
-
-                    if SimpleESP.Drawing.Boxes.Filled.Enabled then
-                        Box.BackgroundTransparency = SimpleESP.Drawing.Boxes.Filled.Transparency
-                        Box.BackgroundColor3 = SimpleESP.Drawing.Boxes.Filled.RGB
-                    else
-                        Box.BackgroundTransparency = 1
-                    end
-                end
-
-                if entityType ~= "npc" then
-                    local health = Humanoid.Health / Humanoid.MaxHealth
-                    Healthbar.Visible = SimpleESP.Drawing.Healthbar.Enabled
-                    Healthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - health))
-                    Healthbar.Size = UDim2.new(0, SimpleESP.Drawing.Healthbar.Width, 0, h * health)
-
-                    BehindHealthbar.Visible = SimpleESP.Drawing.Healthbar.Enabled
-                    BehindHealthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2)
-                    BehindHealthbar.Size = UDim2.new(0, SimpleESP.Drawing.Healthbar.Width, 0, h)
-
-                    if SimpleESP.Drawing.Healthbar.HealthText then
-                        local healthPercentage = math.floor(Humanoid.Health / Humanoid.MaxHealth * 100)
-                        HealthText.Position = UDim2.new(0, Pos.X - w / 2 - 20, 0, Pos.Y - h / 2 + h * (1 - healthPercentage / 100) + 3)
-                        HealthText.Text = tostring(healthPercentage)
-                        HealthText.Visible = SimpleESP.Drawing.Healthbar.Enabled
-
-                        if SimpleESP.Drawing.Healthbar.Lerp then
-                            local color = health >= 0.75 and Color3.fromRGB(0, 255, 0) or 
-                                        health >= 0.5 and Color3.fromRGB(255, 255, 0) or 
-                                        health >= 0.25 and Color3.fromRGB(255, 170, 0) or 
-                                        Color3.fromRGB(255, 0, 0)
-                            HealthText.TextColor3 = color
-                        else
-                            HealthText.TextColor3 = SimpleESP.Drawing.Healthbar.HealthTextRGB
+                    for _, component in pairs(components) do
+                        if typeof(component) == "Instance" then
+                            Functions:FadeOutOnDist(component, Dist)
+                        elseif type(component) == "table" then
+                            for _, part in pairs(component) do
+                                if typeof(part) == "Instance" then
+                                    Functions:FadeOutOnDist(part, Dist)
+                                end
+                            end
                         end
                     end
                 end
 
-                Name.Visible = SimpleESP.Drawing.Names.Enabled
-                Name.Text = GetEntityName(entity, entityType)
-                Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 15)
+                if config.Box then
+                    local boxStyle = config.Box.Style
 
-                Distance.Visible = SimpleESP.Drawing.Distances.Enabled
-                Distance.Text = string.format("%d meters", math.floor(Dist))
-                Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
+                    if boxStyle == SimpleESP.BoxStyle.FULL or boxStyle == SimpleESP.BoxStyle.FILLED then
+                        components.Box.Position = UDim2.new(0, boxX, 0, boxY)
+                        components.Box.Size = UDim2.new(0, w, 0, h)
+                        components.Box.Visible = true
 
-                if entityType == "player" and SimpleESP.Drawing.Weapon.Enabled then
-                    local weaponName = GetWeaponName(entity)
-                    WeaponInfo.Text = "Weapon: " .. weaponName
-                    WeaponInfo.Visible = true
-                    WeaponInfo.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 24)
-                else
-                    WeaponInfo.Visible = false
+                        if boxStyle == SimpleESP.BoxStyle.FILLED then
+                            components.Box.BackgroundTransparency = config.Box.FilledTransparency
+                            components.Box.BackgroundColor3 = config.Box.FilledRGB
+                        else
+                            components.Box.BackgroundTransparency = 1
+                        end
+
+                        if boxStyle == SimpleESP.BoxStyle.FULL then
+
+                            components.BoxOutline.Transparency = 0
+                            components.BoxOutline.Color = config.Box.RGB
+                            components.BoxBlackOutline.Transparency = 0
+                            components.BoxOutline.Thickness = 1
+                            components.BoxBlackOutline.Thickness = 1.5
+                        else
+                            components.BoxOutline.Transparency = 1
+                            components.BoxBlackOutline.Transparency = 1
+                        end
+                    else
+                        components.Box.Visible = false
+                        components.BoxOutline.Transparency = 1
+                        components.BoxBlackOutline.Transparency = 1
+                    end
+
+                    if boxStyle == SimpleESP.BoxStyle.CORNERS then
+                        UpdateCornerBox(components.Corners, boxX, boxY, w, h)
+                    else
+                        for _, corner in pairs(components.Corners) do
+                            corner.Visible = false
+                        end
+                    end
                 end
 
+                local topComponents = {}
+                local bottomComponents = {}
+
+                if config.Name and config.Name.Enabled then
+                    if config.Name.Position == SimpleESP.Position.TOP then
+                        table.insert(topComponents, {component = components.Name, offset = config.Name.Offset, text = GetEntityName(entity, entityType)})
+                    else 
+                        table.insert(bottomComponents, {component = components.Name, offset = config.Name.Offset, text = GetEntityName(entity, entityType)})
+                    end
+                end
+
+                if config.Distance and config.Distance.Enabled then
+                    if config.Distance.Position == SimpleESP.Position.TOP then
+                        table.insert(topComponents, {component = components.Distance, offset = config.Distance.Offset, text = string.format("%d meters", math.floor(Dist))})
+                    else 
+                        table.insert(bottomComponents, {component = components.Distance, offset = config.Distance.Offset, text = string.format("%d meters", math.floor(Dist))})
+                    end
+                end
+
+                if entityType == "Player" and config.Weapon and config.Weapon.Enabled then
+                    local weaponName = GetWeaponName(entity)
+                    if config.Weapon.Position == SimpleESP.Position.TOP then
+                        table.insert(topComponents, {component = components.Weapon, offset = config.Weapon.Offset, text = "Weapon: " .. weaponName})
+                    else 
+                        table.insert(bottomComponents, {component = components.Weapon, offset = config.Weapon.Offset, text = "Weapon: " .. weaponName})
+                    end
+                end
+
+                table.sort(topComponents, function(a, b) return a.offset < b.offset end)
+                table.sort(bottomComponents, function(a, b) return a.offset < b.offset end)
+
+                local topOffset = 15
+                for i, compInfo in ipairs(topComponents) do
+                    compInfo.component.Visible = true
+                    compInfo.component.Text = compInfo.text
+                    compInfo.component.Position = UDim2.new(0, Pos.X, 0, boxY - topOffset - compInfo.offset)
+                    topOffset = topOffset + 17  
+                end
+
+                local bottomOffset = -3
+                for i, compInfo in ipairs(bottomComponents) do
+                    compInfo.component.Visible = true
+                    compInfo.component.Text = compInfo.text
+                    compInfo.component.Position = UDim2.new(0, Pos.X, 0, boxY + h + bottomOffset + compInfo.offset)
+                    bottomOffset = bottomOffset 
+                end
+
+                if entityType ~= "NPC" and config.Healthbar and config.Healthbar.Enabled then
+                    local health = Humanoid.Health / Humanoid.MaxHealth
+                    local healthbarConfig = config.Healthbar
+                    local healthbarWidth = healthbarConfig.Width
+
+                    local healthbarPos = healthbarConfig.Position == SimpleESP.Position.LEFT and 
+                        UDim2.new(0, boxX - healthbarConfig.Offset - healthbarWidth, 0, boxY) or
+                        UDim2.new(0, boxX + w + healthbarConfig.Offset, 0, boxY)
+
+                    local healthbarHeight = h * health
+                    local behindHealthbarHeight = h
+
+                    components.Healthbar.Visible = true
+                    components.Healthbar.Position = UDim2.new(0, healthbarPos.X.Offset, 0, boxY + h - healthbarHeight)
+                    components.Healthbar.Size = UDim2.new(0, healthbarWidth, 0, healthbarHeight)
+                    components.Healthbar.BackgroundTransparency = 0
+
+                    components.BehindHealthbar.Visible = true
+                    components.BehindHealthbar.Position = UDim2.new(0, healthbarPos.X.Offset, 0, boxY)
+                    components.BehindHealthbar.Size = UDim2.new(0, healthbarWidth, 0, behindHealthbarHeight)
+                    components.BehindHealthbar.BackgroundTransparency = 0
+
+                    if healthbarConfig.HealthText and healthbarConfig.HealthText.Enabled and components.HealthText then
+                        local healthPercentage = math.floor(Humanoid.Health / Humanoid.MaxHealth * 100)
+                        components.HealthText.Visible = true
+                        components.HealthText.Text = tostring(healthPercentage)
+
+                        local healthTextPos = healthbarConfig.HealthText.Position
+                        local healthTextX, healthTextY
+
+                        if healthTextPos == SimpleESP.Position.LEFT then
+                            healthTextX = healthbarPos.X.Offset - 13
+                            healthTextY = boxY + h - healthbarHeight + 3
+                        elseif healthTextPos == SimpleESP.Position.RIGHT then
+                            healthTextX = healthbarPos.X.Offset + healthbarWidth + 13
+                            healthTextY = boxY + h - healthbarHeight + 3
+                        elseif healthTextPos == SimpleESP.Position.TOP then
+                            healthTextX = healthbarPos.X.Offset + healthbarWidth / 2
+                            healthTextY = boxY - 15
+                        elseif healthTextPos == SimpleESP.Position.BOTTOM then
+                            healthTextX = healthbarPos.X.Offset + healthbarWidth / 2
+                            healthTextY = boxY + h + 15
+                        end
+
+                        components.HealthText.Position = UDim2.new(0, healthTextX, 0, healthTextY)
+
+                        if healthbarConfig.Lerp then
+                            local color = health >= 0.75 and Color3.fromRGB(0, 255, 0) or 
+                                        health >= 0.5 and Color3.fromRGB(255, 255, 0) or 
+                                        health >= 0.25 and Color3.fromRGB(255, 170, 0) or 
+                                        Color3.fromRGB(255, 0, 0)
+                            components.HealthText.TextColor3 = color
+                        else
+                            components.HealthText.TextColor3 = healthbarConfig.HealthText.RGB
+                        end
+                    end
+                end
             else
-                HideESP()
+                HideAllComponents()
             end
         else
-            HideESP()
+            HideAllComponents()
         end
     end)
 
@@ -435,91 +712,62 @@ local function ApplyESPToEntity(entity, entityType)
     end
 end
 
-    local function InitializeESP()
+local function InitializeESP()
 
-        if workspace:FindFirstChild("PlayerCharacters") then
-            for _, character in pairs(workspace.PlayerCharacters:GetChildren()) do
-                if character.Name ~= LocalPlayer.Name then
-                    coroutine.wrap(ApplyESPToEntity)(character, "player")
-                end
-            end
-
-            workspace.PlayerCharacters.ChildAdded:Connect(function(character)
-                if character.Name ~= LocalPlayer.Name then
-                    wait(0.5) 
-                    coroutine.wrap(ApplyESPToEntity)(character, "player")
-                end
-            end)
-        else
-            print("PlayerCharacters folder not found, checking Players service...")
-
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character then
-                    coroutine.wrap(ApplyESPToEntity)(player.Character, "player")
-                end
-            end
-
-            Players.PlayerAdded:Connect(function(player)
-                player.CharacterAdded:Connect(function(character)
-                    wait(0.5)
-                    coroutine.wrap(ApplyESPToEntity)(character, "player")
-                end)
-            end)
-        end
-
-        local function ProcessEntity(entity)
-            if entity:IsA("Model") and entity:FindFirstChild("HumanoidRootPart") then
-                local entityType = GetEntityType(entity)
-                if entityType ~= "player" then 
-                    coroutine.wrap(ApplyESPToEntity)(entity, entityType)
-                end
+    if workspace:FindFirstChild("PlayerCharacters") then
+        for _, character in pairs(workspace.PlayerCharacters:GetChildren()) do
+            if character.Name ~= LocalPlayer.Name then
+                coroutine.wrap(ApplyESPToEntity)(character)
             end
         end
 
-        local possibleFolders = {
-            workspace:FindFirstChild("Mobs"),
-            workspace:FindFirstChild("Enemies"),
-            workspace:FindFirstChild("Monsters"),
-            workspace:FindFirstChild("NPCs"),
-            workspace:FindFirstChild("NPC"),
-            workspace:FindFirstChild("NonPlayerCharacters")
-        }
-
-        for _, folder in pairs(possibleFolders) do
-            if folder then
-                print("Found entities in folder: " .. folder.Name)
-                for _, entity in pairs(folder:GetChildren()) do
-                    ProcessEntity(entity)
-                end
-
-                folder.ChildAdded:Connect(function(entity)
-                    wait(0.5)
-                    ProcessEntity(entity)
-                end)
-            end
-        end
-
-        for _, obj in pairs(workspace:GetChildren()) do
-            if obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(obj) then
-
-                ProcessEntity(obj)
-            end
-        end
-
-        workspace.ChildAdded:Connect(function(obj)
-            wait(0.5)
-            if obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(obj) then
-                ProcessEntity(obj)
+        workspace.PlayerCharacters.ChildAdded:Connect(function(character)
+            if character.Name ~= LocalPlayer.Name then
+                wait(0.5)
+                coroutine.wrap(ApplyESPToEntity)(character)
             end
         end)
     end
 
-function SimpleESP:CleanUp()
-    if ScreenGui then
-        ScreenGui:Destroy()
+    local function ProcessEntity(entity)
+        if entity:IsA("Model") and entity:FindFirstChild("HumanoidRootPart") then
+            local entityType = GetEntityType(entity)
+            if entityType ~= "Player" then 
+                coroutine.wrap(ApplyESPToEntity)(entity)
+            end
+        end
     end
+
+    local possibleFolders = {
+        workspace:FindFirstChild("NPC")
+    }
+
+    for _, folder in pairs(possibleFolders) do
+        if folder then
+            for _, entity in pairs(folder:GetChildren()) do
+                ProcessEntity(entity)
+            end
+
+            folder.ChildAdded:Connect(function(entity)
+                wait(0.5)
+                ProcessEntity(entity)
+            end)
+        end
+    end
+
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(obj) then
+
+            ProcessEntity(obj)
+        end
+    end
+
+    workspace.ChildAdded:Connect(function(obj)
+        wait(0.5)
+        if obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(obj) then
+            ProcessEntity(obj)
+        end
+    end)
 end
 
-print("Init")
-
-return SimpleESP
+print("init")
