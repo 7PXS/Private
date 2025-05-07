@@ -739,7 +739,12 @@ local function InitializeESP()
     end
 
     local possibleFolders = {
-        workspace:FindFirstChild("NPC")
+        workspace:FindFirstChild("Mobs"),
+        workspace:FindFirstChild("Enemies"),
+        workspace:FindFirstChild("Monsters"),
+        workspace:FindFirstChild("NPCs"),
+        workspace:FindFirstChild("NPC"),
+        workspace:FindFirstChild("NonPlayerCharacters")
     }
 
     for _, folder in pairs(possibleFolders) do
