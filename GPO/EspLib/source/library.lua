@@ -776,6 +776,5 @@ local function InitializeESP()
 end
 
 print("init")
-InitializeESP()
 
 return SimpleESP
