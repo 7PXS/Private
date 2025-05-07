@@ -6,16 +6,16 @@ local LocalPlayer = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 
 local SimpleESP = {
-    Enabled = true,
+    Enabled = false,
     TeamCheck = false,
     MaxDistance = 500,
     FontSize = 11,
     FadeOut = {
         OnDistance = false,
     },
-    ShowPlayers = true,
-    ShowMobs = true,
-    ShowNPCs = true,
+    ShowPlayers = false,
+    ShowMobs = false,
+    ShowNPCs = false,
 
     Position = {
         TOP = "TOP",
@@ -34,19 +34,19 @@ local SimpleESP = {
     ESP = {
         Player = {
             Name = {
-                Enabled = true,
+                Enabled = false,
                 Position = "TOP", 
                 RGB = Color3.fromRGB(255, 255, 255),
                 Offset = 0, 
             },
             Distance = {
-                Enabled = true,
+                Enabled = false,
                 Position = "BOTTOM", 
                 RGB = Color3.fromRGB(255, 255, 255),
                 Offset = 0, 
             },
             Weapon = {
-                Enabled = true,
+                Enabled = false,
                 Position = "BOTTOM", 
                 RGB = Color3.fromRGB(255, 230, 0),
                 Offset = 8, 
@@ -58,12 +58,12 @@ local SimpleESP = {
                 FilledRGB = Color3.fromRGB(0, 0, 0),
             },
             Healthbar = {
-                Enabled = true,
+                Enabled = false,
                 Position = "LEFT", 
                 Offset = 6, 
                 Width = 2.5,
                 HealthText = {
-                    Enabled = true,
+                    Enabled = false,
                     Position = "LEFT", 
                     Offset = 0, 
                     RGB = Color3.fromRGB(255, 255, 255),
@@ -72,18 +72,18 @@ local SimpleESP = {
                 GradientRGB1 = Color3.fromRGB(200, 0, 0),
                 GradientRGB2 = Color3.fromRGB(60, 60, 125),
                 GradientRGB3 = Color3.fromRGB(0, 255, 0),
-                Lerp = true,
+                Lerp = false,
             }
         },
         Mob = {
             Name = {
-                Enabled = true,
+                Enabled = false,
                 Position = "TOP",
                 RGB = Color3.fromRGB(255, 100, 100),
                 Offset = 0,
             },
             Distance = {
-                Enabled = true,
+                Enabled = false,
                 Position = "BOTTOM",
                 RGB = Color3.fromRGB(255, 255, 255),
                 Offset = 0,
@@ -95,12 +95,12 @@ local SimpleESP = {
                 FilledRGB = Color3.fromRGB(0, 0, 0),
             },
             Healthbar = {
-                Enabled = true,
+                Enabled = false,
                 Position = "LEFT",
                 Offset = 6,
                 Width = 2.5,
                 HealthText = {
-                    Enabled = true,
+                    Enabled = false,
                     Position = "LEFT",
                     Offset = 0,
                     RGB = Color3.fromRGB(255, 255, 255),
@@ -114,13 +114,13 @@ local SimpleESP = {
         },
         NPC = {
             Name = {
-                Enabled = true,
+                Enabled = false,
                 Position = "TOP",
                 RGB = Color3.fromRGB(0, 255, 100),
                 Offset = 0,
             },
             Distance = {
-                Enabled = true,
+                Enabled = false,
                 Position = "BOTTOM", 
                 RGB = Color3.fromRGB(255, 255, 255),
                 Offset = 0,
