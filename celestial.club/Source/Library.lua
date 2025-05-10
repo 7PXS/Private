@@ -528,28 +528,6 @@ local Library = {}; do
             BackgroundColor3 = "Accent";
         });
 
-        Objects["shadow"] = Instance.new("ImageLabel")
-        Objects["shadow"].ImageColor3 = Library.Accent
-        Objects["shadow"].ScaleType = Enum.ScaleType.Slice
-        Objects["shadow"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-        Objects["shadow"].Name = "shadow"
-        Objects["shadow"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        Objects["shadow"].Size = UDim2.new(1, 25, 1, 25)
-        Objects["shadow"].AnchorPoint = Vector2.new(0.5, 0.5)
-        Objects["shadow"].Image = getcustomasset(Library.FolderName .. "/Utilities/Shadow.png");
-        Objects["shadow"].BackgroundTransparency = 1
-        Objects["shadow"].Position = UDim2.new(0.5, 0, 0.5, 0)
-        Objects["shadow"].SliceScale = 0.75
-        Objects["shadow"].ZIndex = -1
-        Objects["shadow"].BorderSizePixel = 0
-        Objects["shadow"].SliceCenter = Rect.new(Vector2.new(112, 112), Vector2.new(147, 147))
-        Objects["shadow"].Parent = Objects["watermark"]
-        Objects["shadow"].Visible = true;
-
-        Library:AddToRegistry(Objects["shadow"], {
-            ImageColor3 = "Accent";
-        });
-
         function Watermark:SetVisiblity(Boolean)
             Objects["watermark"].Visible = Boolean;
         end;
@@ -832,28 +810,6 @@ local Library = {}; do
         
         Library:AddToRegistry(Objects["UIStroke3"], {
             Color = "Accent";
-        })
-
-        Objects["shadow"] = Instance.new("ImageLabel")
-        Objects["shadow"].ImageColor3 = Library.Accent
-        Objects["shadow"].ScaleType = Enum.ScaleType.Slice
-        Objects["shadow"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-        Objects["shadow"].Name = "shadow"
-        Objects["shadow"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        Objects["shadow"].Size = UDim2.new(1, 75, 1, 75)
-        Objects["shadow"].AnchorPoint = Vector2.new(0.5, 0.5)
-        Objects["shadow"].Image = getcustomasset(Library.FolderName .. "/Utilities/Shadow.png");
-        Objects["shadow"].BackgroundTransparency = 1
-        Objects["shadow"].Position = UDim2.new(0.5, 0, 0.5, 0)
-        Objects["shadow"].SliceScale = 0.75
-        Objects["shadow"].ZIndex = -1
-        Objects["shadow"].BorderSizePixel = 0
-        Objects["shadow"].SliceCenter = Rect.new(Vector2.new(112, 112), Vector2.new(147, 147))
-        Objects["shadow"].Parent = Objects["main"]
-        Objects["shadow"].Visible = true;
-
-        Library:AddToRegistry(Objects["shadow"], {
-            ImageColor3 = "Accent";
         })
 
         Objects["innerline"] = Instance.new("Frame")
@@ -1420,18 +1376,6 @@ local Library = {}; do
                 Color = "Border";
             })
     
-            SubObjects["hue"] = Instance.new("ImageButton")
-            SubObjects["hue"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-            SubObjects["hue"].AutoButtonColor = false
-            SubObjects["hue"].AnchorPoint = Vector2.new(1, 0)
-            SubObjects["hue"].Image = getcustomasset(Library.FolderName .. "/Utilities/Hue.png");
-            SubObjects["hue"].Name = "hue"
-            SubObjects["hue"].Position = UDim2.new(1, -8, 0, 7)
-            SubObjects["hue"].Size = UDim2.new(0, 17, 0, 150)
-            SubObjects["hue"].BorderSizePixel = 0
-            SubObjects["hue"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            SubObjects["hue"].Parent = SubObjects["pickerwindow"]
-    
             SubObjects["UIStroke6"] = Instance.new("UIStroke")
             SubObjects["UIStroke6"].ApplyStrokeMode = Enum.ApplyStrokeMode.Border
             SubObjects["UIStroke6"].LineJoinMode = Enum.LineJoinMode.Miter
@@ -1460,27 +1404,6 @@ local Library = {}; do
 
             Library:AddToRegistry(SubObjects["UIStroke7"], {
                 Color = "Border";
-            })
-    
-            SubObjects["shadow"] = Instance.new("ImageLabel")
-            SubObjects["shadow"].ImageColor3 = Library.Accent
-            SubObjects["shadow"].ScaleType = Enum.ScaleType.Slice
-            SubObjects["shadow"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-            SubObjects["shadow"].Name = "shadow"
-            SubObjects["shadow"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            SubObjects["shadow"].Size = UDim2.new(1, 75, 1, 75)
-            SubObjects["shadow"].AnchorPoint = Vector2.new(0.5, 0.5)
-            SubObjects["shadow"].Image = getcustomasset(Library.FolderName .. "/Utilities/Shadow.png");
-            SubObjects["shadow"].BackgroundTransparency = 1
-            SubObjects["shadow"].Position = UDim2.new(0.5, 0, 0.5, 0)
-            SubObjects["shadow"].SliceScale = 0.75
-            SubObjects["shadow"].ZIndex = -1
-            SubObjects["shadow"].BorderSizePixel = 0
-            SubObjects["shadow"].SliceCenter = Rect.new(Vector2.new(112, 112), Vector2.new(147, 147))
-            SubObjects["shadow"].Parent = SubObjects["pickerwindow"];
-
-            Library:AddToRegistry(SubObjects["shadow"], {
-                ImageColor3 = "Accent";
             })
     
             function Colorpicker:Close()
