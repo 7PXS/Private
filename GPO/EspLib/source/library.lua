@@ -6,7 +6,7 @@ local LocalPlayer = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 
 local SimpleESP = {
-    Enabled = false,
+    Enabled = true,
     TeamCheck = false,
     MaxDistance = 2000,
     FontSize = 13,
@@ -68,11 +68,11 @@ local SimpleESP = {
                     Offset = 0, 
                     RGB = Color3.fromRGB(255, 255, 255),
                 },
-                Gradient = false,
+                Gradient = true,
                 GradientRGB1 = Color3.fromRGB(255, 0, 0),
                 GradientRGB2 = Color3.fromRGB(255, 255, 0),
                 GradientRGB3 = Color3.fromRGB(0, 255, 0),
-                Lerp = false,
+                Lerp = true,
             }
         },
         Mob = {
@@ -105,11 +105,11 @@ local SimpleESP = {
                     Offset = 0,
                     RGB = Color3.fromRGB(255, 255, 255),
                 },
-                Gradient = false,
+                Gradient = true,
                 GradientRGB1 = Color3.fromRGB(255, 0, 0),
                 GradientRGB2 = Color3.fromRGB(255, 255, 0),
                 GradientRGB3 = Color3.fromRGB(0, 255, 0),
-                Lerp = false,
+                Lerp = true,
             }
         },
         NPC = {
