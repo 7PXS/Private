@@ -52,7 +52,7 @@ local SimpleESP = {
                 Offset = 15, 
             },
             Box = {
-                Style = "CORNERS", 
+                Style = "NONE", 
                 RGB = Color3.fromRGB(17, 168, 255),
                 FilledTransparency = 0.75,
                 FilledRGB = Color3.fromRGB(0, 0, 0),
@@ -89,7 +89,7 @@ local SimpleESP = {
                 Offset = 0,
             },
             Box = {
-                Style = "CORNERS",
+                Style = "NONE",
                 RGB = Color3.fromRGB(21, 161, 255),
                 FilledTransparency = 0.75,
                 FilledRGB = Color3.fromRGB(0, 0, 0),
