@@ -132,40 +132,6 @@ local SimpleESP = {
 
 local Functions = {}
 
-function Functions:UpdateESPVisibility(entityType, entity, components, config)
-    -- Reset visibility of all components
-    for name, component in pairs(components) do
-        if typeof(component) == "Instance" then
-            if component:IsA("GuiObject") then
-                component.Visible = false
-            elseif component:IsA("UIStroke") then
-                component.Transparency = 1
-            end
-        elseif type(component) == "table" then
-            for _, part in pairs(component) do
-                if typeof(part) == "Instance" and part:IsA("GuiObject") then
-                    part.Visible = false
-                end
-            end
-        end
-    end
-
-    -- Early exit if ESP is disabled
-    if not SimpleESP.Enabled then return false end
-
-    -- Check if this entity type is enabled
-    if entityType == "Player" and not SimpleESP.ShowPlayers then return false end
-    if entityType == "Mob" and not SimpleESP.ShowMobs then return false end
-    if entityType == "NPC" and not SimpleESP.ShowNPCs then return false end
-
-    -- Check if entity is valid
-    if not entity or not entity.Parent then return false end
-    if not entity:FindFirstChild("HumanoidRootPart") then return false end
-    
-    -- Entity is valid and should be displayed
-    return true
-end
-
 function Functions:Create(Class, Properties)
     local _Instance = typeof(Class) == 'string' and Instance.new(Class) or Class
     for Property, Value in pairs(Properties) do
@@ -501,248 +467,250 @@ local function ApplyESPToEntity(entity)
     end
 
     local function HideAllComponents()
-    for name, component in pairs(components) do
-        if typeof(component) == "Instance" then
-            if component:IsA("GuiObject") then  
-                component.Visible = false
-            elseif component:IsA("UIStroke") then
-                component.Transparency = 1  
-            end
-        elseif type(component) == "table" then
-            for _, part in pairs(component) do
-                if typeof(part) == "Instance" and part:IsA("GuiObject") then
-                    part.Visible = false
-                end
-            end
-        end
-    end
-
-    -- Clean up the container if entity no longer exists
-    if not entity or not entity.Parent then
-        ESPContainer:Destroy()
-    end
-end
-
-local Connection
-Connection = RunService.RenderStepped:Connect(function()
-    -- Check if ESP should be displayed for this entity
-    if not Functions:UpdateESPVisibility(entityType, entity, components, config) then
-        return
-    end
-    
-    local HRP = entity.HumanoidRootPart
-    local Humanoid = entity:FindFirstChild("Humanoid")
-    
-    if not Humanoid then
-        return
-    end
-    
-    local Pos, OnScreen = Cam:WorldToScreenPoint(HRP.Position)
-    
-    local playerPosition = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") 
-        and LocalPlayer.Character.HumanoidRootPart.Position
-        or Cam.CFrame.Position 
-    
-    local Dist = (playerPosition - HRP.Position).Magnitude / 3.5714285714
-    
-    if not OnScreen or Dist > SimpleESP.MaxDistance then
-        return
-    end
-    
-    local Size = HRP.Size.Y
-    local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
-    local w, h = 3 * scaleFactor, 4.5 * scaleFactor
-    
-    local boxX, boxY = Pos.X - w / 2, Pos.Y - h / 2
-    
-    if SimpleESP.FadeOut.OnDistance then
-        for _, component in pairs(components) do
+        for name, component in pairs(components) do
             if typeof(component) == "Instance" then
-                Functions:FadeOutOnDist(component, Dist)
+
+                if component:IsA("GuiObject") then  
+                    component.Visible = false
+                elseif component:IsA("UIStroke") then
+                    component.Transparency = 1  
+                end
             elseif type(component) == "table" then
                 for _, part in pairs(component) do
-                    if typeof(part) == "Instance" then
-                        Functions:FadeOutOnDist(part, Dist)
+                    if typeof(part) == "Instance" and part:IsA("GuiObject") then
+                        part.Visible = false
                     end
                 end
             end
         end
-    end
-    
-    -- Reset visibility for all components first
-    components.Name.Visible = false
-    components.Distance.Visible = false
-    if components.Weapon then
-        components.Weapon.Visible = false
-    end
-    if components.HealthText then
-        components.HealthText.Visible = false
-    end
-    if components.Healthbar then
-        components.Healthbar.Visible = false
-        components.BehindHealthbar.Visible = false
-    end
-    
-    -- Handle Box visibility based on config
-    if config.Box then
-        local boxStyle = config.Box.Style
-        
-        components.Box.Visible = (boxStyle == SimpleESP.BoxStyle.FULL or boxStyle == SimpleESP.BoxStyle.FILLED)
-        
-        if boxStyle == SimpleESP.BoxStyle.FILLED then
-            components.Box.BackgroundTransparency = config.Box.FilledTransparency
-            components.Box.BackgroundColor3 = config.Box.FilledRGB
-        else
-            components.Box.BackgroundTransparency = 1
+
+        if not entity or not entity.Parent then
+            ESPContainer:Destroy()
         end
-        
-        if boxStyle == SimpleESP.BoxStyle.FULL then
-            components.BoxOutline.Transparency = 0
-            components.BoxOutline.Color = config.Box.RGB
-            components.BoxBlackOutline.Transparency = 0
-            components.BoxOutline.Thickness = 1
-            components.BoxBlackOutline.Thickness = 1.5
-        else
-            components.BoxOutline.Transparency = 1
-            components.BoxBlackOutline.Transparency = 1
+    end
+
+    local Connection
+    Connection = RunService.RenderStepped:Connect(function()
+        if not SimpleESP.Enabled then 
+            HideAllComponents()
+            return
         end
-        
-        -- Handle corner box
-        if boxStyle == SimpleESP.BoxStyle.CORNERS then
-            UpdateCornerBox(components.Corners, boxX, boxY, w, h)
-        else
-            for _, corner in pairs(components.Corners) do
-                corner.Visible = false
+
+        if entityType == "Player" and not SimpleESP.ShowPlayers then
+            HideAllComponents()
+            return
+        end
+
+        if entityType == "Mob" and not SimpleESP.ShowMobs then
+            HideAllComponents()
+            return
+        end
+
+        if entityType == "NPC" and not SimpleESP.ShowNPCs then
+            HideAllComponents()
+            return
+        end
+
+        if entity and entity:FindFirstChild("HumanoidRootPart") then
+            local HRP = entity.HumanoidRootPart
+            local Humanoid = entity:FindFirstChild("Humanoid")
+
+            if not Humanoid then
+                HideAllComponents()
+                return
             end
-        end
-    else
-        components.Box.Visible = false
-        components.BoxOutline.Transparency = 1
-        components.BoxBlackOutline.Transparency = 1
-        for _, corner in pairs(components.Corners) do
-            corner.Visible = false
-        end
-    end
-    
-    local topComponents = {}
-    local bottomComponents = {}
-    
-    -- Only add components to display lists if they are enabled in config
-    if config.Name and config.Name.Enabled then
-        if config.Name.Position == SimpleESP.Position.TOP then
-            table.insert(topComponents, {component = components.Name, offset = config.Name.Offset, text = GetEntityName(entity, entityType)})
-        else 
-            table.insert(bottomComponents, {component = components.Name, offset = config.Name.Offset, text = GetEntityName(entity, entityType)})
-        end
-    end
-    
-    if config.Distance and config.Distance.Enabled then
-        if config.Distance.Position == SimpleESP.Position.TOP then
-            table.insert(topComponents, {component = components.Distance, offset = config.Distance.Offset, text = string.format("%d meters", math.floor(Dist))})
-        else 
-            table.insert(bottomComponents, {component = components.Distance, offset = config.Distance.Offset, text = string.format("%d meters", math.floor(Dist))})
-        end
-    end
-    
-    if entityType == "Player" and config.Weapon and config.Weapon.Enabled then
-        local weaponName = GetWeaponName(entity)
-        if config.Weapon.Position == SimpleESP.Position.TOP then
-            table.insert(topComponents, {component = components.Weapon, offset = config.Weapon.Offset, text = "Weapon: " .. weaponName})
-        else 
-            table.insert(bottomComponents, {component = components.Weapon, offset = config.Weapon.Offset, text = "Weapon: " .. weaponName})
-        end
-    end
-    
-    -- Sort components by offset
-    table.sort(topComponents, function(a, b) return a.offset < b.offset end)
-    table.sort(bottomComponents, function(a, b) return a.offset < b.offset end)
-    
-    -- Position and display top components
-    local topOffset = 15
-    for i, compInfo in ipairs(topComponents) do
-        compInfo.component.Visible = true
-        compInfo.component.Text = compInfo.text
-        compInfo.component.Position = UDim2.new(0, Pos.X, 0, boxY - topOffset - compInfo.offset)
-        topOffset = topOffset + 17  
-    end
-    
-    -- Position and display bottom components
-    local bottomOffset = -3
-    for i, compInfo in ipairs(bottomComponents) do
-        compInfo.component.Visible = true
-        compInfo.component.Text = compInfo.text
-        compInfo.component.Position = UDim2.new(0, Pos.X, 0, boxY + h + bottomOffset + compInfo.offset)
-        bottomOffset = bottomOffset + 17  -- Fixed: add proper offset increment
-    end
-    
-    -- Handle healthbar visibility and positioning
-    if entityType ~= "NPC" and config.Healthbar and config.Healthbar.Enabled then
-        local health = Humanoid.Health / Humanoid.MaxHealth
-        local healthbarConfig = config.Healthbar
-        local healthbarWidth = healthbarConfig.Width
-    
-        local healthbarPos = healthbarConfig.Position == SimpleESP.Position.LEFT and 
-            UDim2.new(0, boxX - healthbarConfig.Offset - healthbarWidth, 0, boxY) or
-            UDim2.new(0, boxX + w + healthbarConfig.Offset, 0, boxY)
-    
-        local healthbarHeight = h * health
-        local behindHealthbarHeight = h
-    
-        components.Healthbar.Visible = true
-        components.Healthbar.Position = UDim2.new(0, healthbarPos.X.Offset, 0, boxY + h - healthbarHeight)
-        components.Healthbar.Size = UDim2.new(0, healthbarWidth, 0, healthbarHeight)
-        components.Healthbar.BackgroundTransparency = 0
-    
-        components.BehindHealthbar.Visible = true
-        components.BehindHealthbar.Position = UDim2.new(0, healthbarPos.X.Offset, 0, boxY)
-        components.BehindHealthbar.Size = UDim2.new(0, healthbarWidth, 0, behindHealthbarHeight)
-        components.BehindHealthbar.BackgroundTransparency = 0
-    
-        if healthbarConfig.HealthText and healthbarConfig.HealthText.Enabled and components.HealthText then
-            local healthPercentage = math.floor(Humanoid.Health / Humanoid.MaxHealth * 100)
-            components.HealthText.Visible = true
-            components.HealthText.Text = tostring(healthPercentage)
-    
-            local healthTextPos = healthbarConfig.HealthText.Position
-            local healthTextX, healthTextY
-    
-            if healthTextPos == SimpleESP.Position.LEFT then
-                healthTextX = healthbarPos.X.Offset - 13
-                healthTextY = boxY + h - healthbarHeight + 3
-            elseif healthTextPos == SimpleESP.Position.RIGHT then
-                healthTextX = healthbarPos.X.Offset + healthbarWidth + 13
-                healthTextY = boxY + h - healthbarHeight + 3
-            elseif healthTextPos == SimpleESP.Position.TOP then
-                healthTextX = healthbarPos.X.Offset + healthbarWidth / 2
-                healthTextY = boxY - 15
-            elseif healthTextPos == SimpleESP.Position.BOTTOM then
-                healthTextX = healthbarPos.X.Offset + healthbarWidth / 2
-                healthTextY = boxY + h + 15
-            end
-    
-            components.HealthText.Position = UDim2.new(0, healthTextX, 0, healthTextY)
-    
-            if healthbarConfig.Lerp then
-                local color = health >= 0.75 and Color3.fromRGB(0, 255, 0) or 
-                            health >= 0.5 and Color3.fromRGB(255, 255, 0) or 
-                            health >= 0.25 and Color3.fromRGB(255, 170, 0) or 
-                            Color3.fromRGB(255, 0, 0)
-                components.HealthText.TextColor3 = color
+
+            local Pos, OnScreen = Cam:WorldToScreenPoint(HRP.Position)
+
+            local playerPosition = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") 
+                and LocalPlayer.Character.HumanoidRootPart.Position
+                or Cam.CFrame.Position 
+
+            local Dist = (playerPosition - HRP.Position).Magnitude / 3.5714285714
+
+            if OnScreen and Dist <= SimpleESP.MaxDistance then
+                local Size = HRP.Size.Y
+                local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
+                local w, h = 3 * scaleFactor, 4.5 * scaleFactor
+
+                local boxX, boxY = Pos.X - w / 2, Pos.Y - h / 2
+
+                if SimpleESP.FadeOut.OnDistance then
+                    for _, component in pairs(components) do
+                        if typeof(component) == "Instance" then
+                            Functions:FadeOutOnDist(component, Dist)
+                        elseif type(component) == "table" then
+                            for _, part in pairs(component) do
+                                if typeof(part) == "Instance" then
+                                    Functions:FadeOutOnDist(part, Dist)
+                                end
+                            end
+                        end
+                    end
+                end
+
+                if config.Box then
+                    local boxStyle = config.Box.Style
+
+                    if boxStyle == SimpleESP.BoxStyle.FULL or boxStyle == SimpleESP.BoxStyle.FILLED then
+                        components.Box.Position = UDim2.new(0, boxX, 0, boxY)
+                        components.Box.Size = UDim2.new(0, w, 0, h)
+                        components.Box.Visible = true
+
+                        if boxStyle == SimpleESP.BoxStyle.FILLED then
+                            components.Box.BackgroundTransparency = config.Box.FilledTransparency
+                            components.Box.BackgroundColor3 = config.Box.FilledRGB
+                        else
+                            components.Box.BackgroundTransparency = 1
+                        end
+
+                        if boxStyle == SimpleESP.BoxStyle.FULL then
+
+                            components.BoxOutline.Transparency = 0
+                            components.BoxOutline.Color = config.Box.RGB
+                            components.BoxBlackOutline.Transparency = 0
+                            components.BoxOutline.Thickness = 1
+                            components.BoxBlackOutline.Thickness = 1.5
+                        else
+                            components.BoxOutline.Transparency = 1
+                            components.BoxBlackOutline.Transparency = 1
+                        end
+                    else
+                        components.Box.Visible = false
+                        components.BoxOutline.Transparency = 1
+                        components.BoxBlackOutline.Transparency = 1
+                    end
+
+                    if boxStyle == SimpleESP.BoxStyle.CORNERS then
+                        UpdateCornerBox(components.Corners, boxX, boxY, w, h)
+                    else
+                        for _, corner in pairs(components.Corners) do
+                            corner.Visible = false
+                        end
+                    end
+                end
+
+                local topComponents = {}
+                local bottomComponents = {}
+
+                if config.Name and config.Name.Enabled then
+                    if config.Name.Position == SimpleESP.Position.TOP then
+                        table.insert(topComponents, {component = components.Name, offset = config.Name.Offset, text = GetEntityName(entity, entityType)})
+                    else 
+                        table.insert(bottomComponents, {component = components.Name, offset = config.Name.Offset, text = GetEntityName(entity, entityType)})
+                    end
+                end
+
+                if config.Distance and config.Distance.Enabled then
+                    if config.Distance.Position == SimpleESP.Position.TOP then
+                        table.insert(topComponents, {component = components.Distance, offset = config.Distance.Offset, text = string.format("%d meters", math.floor(Dist))})
+                    else 
+                        table.insert(bottomComponents, {component = components.Distance, offset = config.Distance.Offset, text = string.format("%d meters", math.floor(Dist))})
+                    end
+                end
+
+                if entityType == "Player" and config.Weapon and config.Weapon.Enabled then
+                    local weaponName = GetWeaponName(entity)
+                    if config.Weapon.Position == SimpleESP.Position.TOP then
+                        table.insert(topComponents, {component = components.Weapon, offset = config.Weapon.Offset, text = "Weapon: " .. weaponName})
+                    else 
+                        table.insert(bottomComponents, {component = components.Weapon, offset = config.Weapon.Offset, text = "Weapon: " .. weaponName})
+                    end
+                end
+
+                table.sort(topComponents, function(a, b) return a.offset < b.offset end)
+                table.sort(bottomComponents, function(a, b) return a.offset < b.offset end)
+
+                local topOffset = 15
+                for i, compInfo in ipairs(topComponents) do
+                    compInfo.component.Visible = true
+                    compInfo.component.Text = compInfo.text
+                    compInfo.component.Position = UDim2.new(0, Pos.X, 0, boxY - topOffset - compInfo.offset)
+                    topOffset = topOffset + 17  
+                end
+
+                local bottomOffset = -3
+                for i, compInfo in ipairs(bottomComponents) do
+                    compInfo.component.Visible = true
+                    compInfo.component.Text = compInfo.text
+                    compInfo.component.Position = UDim2.new(0, Pos.X, 0, boxY + h + bottomOffset + compInfo.offset)
+                    bottomOffset = bottomOffset 
+                end
+
+                if entityType ~= "NPC" and config.Healthbar and config.Healthbar.Enabled then
+                    local health = Humanoid.Health / Humanoid.MaxHealth
+                    local healthbarConfig = config.Healthbar
+                    local healthbarWidth = healthbarConfig.Width
+
+                    local healthbarPos = healthbarConfig.Position == SimpleESP.Position.LEFT and 
+                        UDim2.new(0, boxX - healthbarConfig.Offset - healthbarWidth, 0, boxY) or
+                        UDim2.new(0, boxX + w + healthbarConfig.Offset, 0, boxY)
+
+                    local healthbarHeight = h * health
+                    local behindHealthbarHeight = h
+
+                    components.Healthbar.Visible = true
+                    components.Healthbar.Position = UDim2.new(0, healthbarPos.X.Offset, 0, boxY + h - healthbarHeight)
+                    components.Healthbar.Size = UDim2.new(0, healthbarWidth, 0, healthbarHeight)
+                    components.Healthbar.BackgroundTransparency = 0
+
+                    components.BehindHealthbar.Visible = true
+                    components.BehindHealthbar.Position = UDim2.new(0, healthbarPos.X.Offset, 0, boxY)
+                    components.BehindHealthbar.Size = UDim2.new(0, healthbarWidth, 0, behindHealthbarHeight)
+                    components.BehindHealthbar.BackgroundTransparency = 0
+
+                    if healthbarConfig.HealthText and healthbarConfig.HealthText.Enabled and components.HealthText then
+                        local healthPercentage = math.floor(Humanoid.Health / Humanoid.MaxHealth * 100)
+                        components.HealthText.Visible = true
+                        components.HealthText.Text = tostring(healthPercentage)
+
+                        local healthTextPos = healthbarConfig.HealthText.Position
+                        local healthTextX, healthTextY
+
+                        if healthTextPos == SimpleESP.Position.LEFT then
+                            healthTextX = healthbarPos.X.Offset - 13
+                            healthTextY = boxY + h - healthbarHeight + 3
+                        elseif healthTextPos == SimpleESP.Position.RIGHT then
+                            healthTextX = healthbarPos.X.Offset + healthbarWidth + 13
+                            healthTextY = boxY + h - healthbarHeight + 3
+                        elseif healthTextPos == SimpleESP.Position.TOP then
+                            healthTextX = healthbarPos.X.Offset + healthbarWidth / 2
+                            healthTextY = boxY - 15
+                        elseif healthTextPos == SimpleESP.Position.BOTTOM then
+                            healthTextX = healthbarPos.X.Offset + healthbarWidth / 2
+                            healthTextY = boxY + h + 15
+                        end
+
+                        components.HealthText.Position = UDim2.new(0, healthTextX, 0, healthTextY)
+
+                        if healthbarConfig.Lerp then
+                            local color = health >= 0.75 and Color3.fromRGB(0, 255, 0) or 
+                                        health >= 0.5 and Color3.fromRGB(255, 255, 0) or 
+                                        health >= 0.25 and Color3.fromRGB(255, 170, 0) or 
+                                        Color3.fromRGB(255, 0, 0)
+                            components.HealthText.TextColor3 = color
+                        else
+                            components.HealthText.TextColor3 = healthbarConfig.HealthText.RGB
+                        end
+                    end
+                end
             else
-                components.HealthText.TextColor3 = healthbarConfig.HealthText.RGB
+                HideAllComponents()
             end
+        else
+            HideAllComponents()
         end
-    else
-        -- Make sure healthbar components are hidden when disabled
-        if components.Healthbar then
-            components.Healthbar.Visible = false
-            components.BehindHealthbar.Visible = false
-        end
-        if components.HealthText then
-            components.HealthText.Visible = false
-        end
+    end)
+
+    if entity then
+        entity.AncestryChanged:Connect(function(_, parent)
+            if parent == nil then
+                Connection:Disconnect()
+                ESPContainer:Destroy()
+            end
+        end)
     end
-end)
+end
 
 local function InitializeESP()
 
