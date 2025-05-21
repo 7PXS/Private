@@ -1,4 +1,4 @@
-return = {
+return {
     Enabled = false,
     SelectedStats = {},
     PointsToAdd = 1,
