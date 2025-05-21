@@ -1,4 +1,4 @@
-return = {
+return {
     RifleFarm = {
         Enabled = false,
         AutoReload = false,
