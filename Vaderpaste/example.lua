@@ -1,5 +1,5 @@
---aaa
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/i77lhm/vaderpaste/refs/heads/main/library.lua"))() 
+--UI EXAMPLE CODE
+local library = loadstring(game:HttpGet("https://production--skider.netlify.app/Vaderpaste/library.lua"))() 
 local flags = library.flags -- access flags from here.
 
 local window = library:window({
