@@ -742,17 +742,18 @@ end
             -- 
 
             -- esp preview
-                local esp_preview = library:create("Frame", {
-                    Parent = library.gui,
-                    Name = "",
-                    Visible = false, 
-                    Active = true, 
-                    Draggable = true, 
-                    Position = UDim2.new(0, inline1.AbsolutePosition.X + inline1.AbsoluteSize.X + 8, 0, inline1.AbsolutePosition.Y + 1), 
-                    BorderColor3 = Color3.fromRGB(8, 8, 8),
-                    Size = UDim2.new(0, 328, 0, 376),
-                    BackgroundColor3 = Color3.fromRGB(56, 56, 56)
-                }) library:make_resizable(esp_preview)
+            local esp_preview = library:create("Frame", {
+                Parent = library.gui,
+                Name = "",
+                Visible = false,
+                Active = true,
+                Position = UDim2.new(0, inline1.AbsolutePosition.X + inline1.AbsoluteSize.X + 8, 0, inline1.AbsolutePosition.Y + 1),
+                BorderColor3 = Color3.fromRGB(8, 8, 8),
+                Size = UDim2.new(0, 328, 0, 376),
+                BackgroundColor3 = Color3.fromRGB(56, 56, 56)
+            })
+            make_draggable(esp_preview)
+            library:make_resizable(esp_preview)
 
                 local name = library:create("TextLabel", {
                     Parent = esp_preview,
@@ -5050,13 +5051,47 @@ end
                 BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             })
 
+            local function make_draggable(frame)
+                local dragging = false
+                local drag_start, start_pos
+            
+                frame.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        drag_start = input.Position
+                        start_pos = frame.Position
+                    end
+                end)
+            
+                frame.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+            
+                library:connection(uis.InputChanged, function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local delta = input.Position - drag_start
+                        frame.Position = UDim2.new(
+                            start_pos.X.Scale,
+                            start_pos.X.Offset + delta.X,
+                            start_pos.Y.Scale,
+                            start_pos.Y.Offset + delta.Y
+                        )
+                    end
+                end)
+            end
+            
+            -- Modified inline1 frame (removed Draggable = true)
             local inline1 = library:create("Frame", {
-                Parent = holder,
+                Parent = __holder,
                 Name = "",
-                BorderColor3 = Color3.fromRGB(8, 8, 8),
-                AutomaticSize = Enum.AutomaticSize.XY,
-                BackgroundColor3 = Color3.fromRGB(56, 56, 56)
+                Active = true,
+                BorderColor3 = Color3.fromRGB(0, 0, 0),
+                Size = UDim2.new(0, ((#animated_text / 2) * 5) + 13, 0, 40),
+                BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             })
+            make_draggable(inline1)
 
             local main = library:create("Frame", {
                 Parent = inline1,
