@@ -579,19 +579,52 @@ end
             -- 
 
             -- window
-                local inline1 = library:create("Frame", {
-                    Parent = library.gui,
-                    Name = "",
-                    Active = true, 
-                    Draggable = true,
-                    Position = UDim2.new(0.5, -cfg.size.X.Offset/2, 0.5, -cfg.size.Y.Offset/2),
-                    BorderColor3 = Color3.fromRGB(8, 8, 8),
-                    ZIndex = 2,
-                    Size = cfg.size,
-                    BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                }) table.insert(library.main_frame, inline1)
-                local WINDOW_PATH = inline1
-                library:make_resizable(inline1)
+                local function make_draggable(frame)
+                local dragging = false
+                local drag_start, start_pos
+            
+                frame.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        drag_start = input.Position
+                        start_pos = frame.Position
+                    end
+                end)
+            
+                frame.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+            
+                library:connection(uis.InputChanged, function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local delta = input.Position - drag_start
+                        frame.Position = UDim2.new(
+                            start_pos.X.Scale,
+                            start_pos.X.Offset + delta.X,
+                            start_pos.Y.Scale,
+                            start_pos.Y.Offset + delta.Y
+                        )
+                    end
+                end)
+            end
+            
+            -- Modified inline1 frame (removed Draggable = true)
+            local inline1 = library:create("Frame", {
+                Parent = library.gui,
+                Name = "",
+                Active = true,
+                Position = UDim2.new(0.5, -cfg.size.X.Offset/2, 0.5, -cfg.size.Y.Offset/2),
+                BorderColor3 = Color3.fromRGB(8, 8, 8),
+                ZIndex = 2,
+                Size = cfg.size,
+                BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            })
+            table.insert(library.main_frame, inline1)
+            local WINDOW_PATH = inline1
+            make_draggable(inline1)
+            library:make_resizable(inline1)
                 
                 local inline2 = library:create("Frame", {
                     Parent = inline1,
@@ -752,7 +785,9 @@ end
                     BorderColor3 = Color3.fromRGB(8, 8, 8),
                     Size = UDim2.new(0, 328, 0, 376),
                     BackgroundColor3 = Color3.fromRGB(56, 56, 56)
-                }) library:make_resizable(esp_preview)
+                }) 
+                    make_draggable(esp_preview)
+                    library:make_resizable(esp_preview)
 
                 local name = library:create("TextLabel", {
                     Parent = esp_preview,
