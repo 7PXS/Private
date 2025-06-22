@@ -3674,3 +3674,16 @@ function library:addButton(options)
 		Name = "",
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	})
+
+
+	local UIStroke = library:create("UIStroke", {
+		Parent = button_holder,
+		Name = "",
+	})
+
+	local UIPadding = library:create("UIPadding", {
+		Parent = button_holder,
+		Name = "",
+		PaddingLeft = dim(0, 1),
+	})
+end
