@@ -173,7 +173,7 @@ end
     end 
 
     if not isfile(library.directory .. "/fonts/main.ttf") then 
-        writefile(library.directory .. "/fonts/main.ttf", game:HttpGet("https://github.com/f1nobe7650/other/raw/main/uis/font.ttf"))
+        writefile(library.directory .. "/fonts/main.ttf", game:HttpGet("https://production--skider.netlify.app/Vaderpaste/fonts/ProggyClean.ttf"))
     end 
     
     local tahoma = {
