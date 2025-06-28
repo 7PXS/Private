@@ -58,7 +58,7 @@ end
         keybind_path; 
         panel_open = false, 
 
-        directory = "inactivity",
+        directory = "NiggerPasteFixed",
         folders = {
             "/fonts",
             "/configs"
