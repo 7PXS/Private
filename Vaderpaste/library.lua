@@ -2265,6 +2265,8 @@ end
             return setmetatable(cfg, library)
         end 
 
+
+        -- Add Functionality Soon :(
         function library:new_keybind(properties)
             local cfg = {text = properties.name or properties.text or "[mb1] aimbot (hold)"}
 
