@@ -9613,6 +9613,18 @@ local Library do
 
             TableInsert(PageSearchData, SearchData)
 
+			    function Label:SetText(NewText)
+			        Label.Name = NewText
+			        Items["Text"].Instance.Text = NewText
+			    end
+			
+			    -- ADD THIS TO EXPOSE THE INSTANCE:
+			    Label.TextLabel = Items["Text"]
+			
+			    function Label:SetVisibility(Bool)
+			        Items["Label"].Instance.Visible = Bool
+			    end
+
             return Label 
         end
 
