@@ -12,7 +12,6 @@ end
 local player = game.Players.LocalPlayer
 
 -- Default key for testing, users should override this
-getgenv().AVOURA_KEY = "test-key-123456"
 local key = getgenv().AVOURA_KEY
 
 local AUTH_URL = "https://utils32.vercel.app"
