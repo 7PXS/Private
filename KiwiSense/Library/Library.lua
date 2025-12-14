@@ -2044,18 +2044,18 @@ local Library do
     end
 
     local Themes = {
-        ["Preset"] = {
-            ["Background"] = FromRGB(16, 18, 21),
-            ["Inline"] = FromRGB(22, 25, 29),
-            ["Shadow"] = FromRGB(0, 0, 0),
-            ["Text"] = FromRGB(255, 255, 255),
-            ["Image"] = FromRGB(255, 255, 255),
-            ["Dark Gradient"] = FromRGB(211, 211, 211),
-            ["Inactive Text"] = FromRGB(185, 185, 185),
-            ["Element"] = FromRGB(34, 39, 45),
-            ["Accent"] = FromRGB(196, 231, 255),
-            ["Border"] = FromRGB(32, 36, 42)
-        },
+	    ["Preset"] = {
+	        ["Background"] = FromRGB(15, 15, 20),
+	        ["Inline"] = FromRGB(22, 22, 30),
+	        ["Shadow"] = FromRGB(0, 0, 0),
+	        ["Text"] = FromRGB(235, 225, 255),
+	        ["Image"] = FromRGB(255, 255, 255),
+	        ["Dark Gradient"] = FromRGB(211, 211, 211),
+	        ["Inactive Text"] = FromRGB(150, 140, 170),
+	        ["Element"] = FromRGB(28, 28, 36),
+	        ["Accent"] = FromRGB(170, 110, 255),
+	        ["Border"] = FromRGB(40, 38, 48)
+	    },
 
         ["Halloween"] = {
             ["Background"] = FromRGB(11, 10, 9),
