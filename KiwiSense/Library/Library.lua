@@ -9425,7 +9425,7 @@ local Library do
                 Items = Data.Items or Data.items or { "One", "Two", "Three" },
                 Callback = Data.Callback or Data.callback or function() end,
                 Multi = Data.Multi or Data.multi or false,
-                MaxSize = Data.MaxSize or Data.maxsize or 85
+                MaxSize = Data.MaxSize or Data.maxsize or 200
             }
 
             local NewDropdown, DropdownItems = Components.Dropdown({
