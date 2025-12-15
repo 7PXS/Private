@@ -7236,7 +7236,7 @@ local Library do
                     Parent = Items["Version"].Instance,
                     Name = "\0",
                     PaddingRight = UDimNew(0, 5),
-                    PaddingLeft = UDimNew(0, 0)
+                    PaddingLeft = UDimNew(0, 6)
                 })
 
                 Items["VersionText"] = Instances:Create("TextLabel", {
