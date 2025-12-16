@@ -1,276 +1,207 @@
--- Avoura Loader v1.0
--- Check out https://avoura.dev for more info
-
-print("Avoura Loader starting up...")
-
-_G.AVOURA_VERSION = "alpha"  -- temp version, update later
+-- Version 2.1
+_G.AVOURA_VERSION = _G.AVOURA_VERSION or "release"
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
 local player = game.Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+local RbxAnalyticsService = game:GetService("RbxAnalyticsService")
 
--- Default key for testing, users should override this
 local key = getgenv().AVOURA_KEY
 
 local AUTH_URL = "https://utils32.vercel.app"
-local WEBHOOK = "https://discord.com/api/webhooks/1448466396030697522/OXfbCUN42gCHyelVFE2lO5ObQ7CvFLTcf6Yvy4OmFm7emyC3rKzDU-TVe11u_fZcx2Os"
+local WEBHOOK = "https://discord.com/api/webhooks/1449525733503271023/pSgwXDVwjC8L7FaIq9Z0-45V16kUbSHpKewJojxvF3WXVXdvmikWQTNR7ObJK6aUtWG0"
 
--- Load the UI lib
 local Library = loadstring(game:HttpGet("https://production--skider.netlify.app/KiwiSense/Library/Library.lua"))()
 
 local Utils = {}
-
--- Custom notify func with fixed style
 function Utils.notify(title, desc)
     Library:Notification({
-        Name = title,
-        Description = desc,
-        Duration = 4,
-        Icon = "116339777575852",
-        IconColor = Color3.fromRGB(52, 255, 164)
+        Name = title, Description = desc, Duration = 4,
+        Icon = "116339777575852", IconColor = Color3.fromRGB(52, 255, 164)
     })
 end
 
--- Grab hardware ID from analytics
-local function getHardwareId()
-    return game:GetService("RbxAnalyticsService"):GetClientId()
-end
+local marker = ""
+print("Avoura " .. marker)
 
--- Detect the executor if possible
-local function getExecutorName()
-    local ok, name = pcall(identifyexecutor)
-    return ok and name or "Unknown"
-end
+local LoadingLabel = nil
+local CurrentProgress = 0.0
+local StartTime = os.time() 
 
--- Format current date and time with UTC offset
-local function getTimestamp()
-    local dt = os.date("*t")
-    local tz = os.date("%z")
-    return string.format("%02d/%02d/%04d %02d:%02d:%02d (UTC%s)",
-        dt.month, dt.day, dt.year,
-        dt.hour, dt.min, dt.sec,
-        tz:sub(1,3) .. ":" .. tz:sub(4,5))
-end
-
-local hs = game:GetService("HttpService")
-local mps = game:GetService("MarketplaceService")
-
--- Cache game info early to avoid repeated calls
-local gameId = game.PlaceId
-local gameName
-pcall(function()
-    gameName = mps:GetProductInfo(gameId).Name
-end)
-gameName = gameName or "Unknown Game"
-
-print("Place ID:", gameId)
-
--- Log events to Discord via webhook
-local function logToWebhook(title, desc, fields, color)
-    local embed = {
-        title = title,
-        description = desc,
-        color = color or 16711680,
-        fields = fields,
-        footer = { text = "Avoura Auth • " .. getTimestamp() },
-        thumbnail = { url = "https://cdn.discordapp.com/icons/1404649365263356015/b55a8de3b2eaf52740b520d5cb3e0b25.webp?size=1024" }
-    }
-
-    local payload = {
-        embeds = { embed },
-        username = "Avoura Security",
-        avatar_url = "https://cdn.discordapp.com/icons/1404649365263356015/b55a8de3b2eaf52740b520d5cb3e0b25.webp?size=1024"
-    }
-
-    local headers = { ["Content-Type"] = "application/json" }
-    local body = hs:JSONEncode(payload)
-
-    pcall(function()
-        request({
-            Url = WEBHOOK,
-            Method = "POST",
-            Headers = headers,
-            Body = body
-        })
-    end)
-end
-
--- Authenticate against the server
-local function authRequest(key, hwid, gameId)
-    local url = string.format("%s/auth/v1?key=%s&hwid=%s&gameId=%s",
-        AUTH_URL,
-        hs:UrlEncode(key),
-        hs:UrlEncode(hwid),
-        hs:UrlEncode(tostring(gameId)))
-
-    local ok, res = pcall(function()
-        return request({
-            Url = url,
-            Method = "GET",
-            Headers = { ["User-Agent"] = "Roblox/WinInet" }
-        })
-    end)
-
-    if not ok then
-        return false, "Couldn't reach auth server"
+local function updateBar(percent, status)
+    if LoadingLabel then
+        local display = math.min(percent, 100)
+        local filled = math.floor(display / 5)
+        local bar = ("█"):rep(filled) .. ("░"):rep(20 - filled)
+        LoadingLabel.Text = `<font color='rgb(170,110,255)'>[Avoura]</font> <font color='rgb(255,215,0)'>[{bar} {string.format("%.0f", display)}%] {status}</font>`
     end
+end
 
-    local data = hs:JSONDecode(res.Body)
+local function setFinalMessage(isSuccess, message)
+    if not LoadingLabel then return end
+    local color = isSuccess and "rgb(0,255,0)" or "rgb(255,0,0)"
+    local prefix = isSuccess and "Successfully loaded" or "Error"
+    local elapsed = os.time() - (StartTime or os.time()) 
+    local timeDisplay = isSuccess and string.format(" in %ds", elapsed) or ""
+    
+    LoadingLabel.Text = `<font color='{color}'>[Avoura] {prefix}{timeDisplay}: {message}</font>`
+    task.wait(3) 
+end
+
+local function advanceBar(targetPercent, status)
+    local duration = 0.7 
+    repeat task.wait(0.01) until LoadingLabel 
+    local startProgress = CurrentProgress
+    local t = 0
+    while t < duration do
+        t = t + task.wait()
+        CurrentProgress = startProgress + (targetPercent - startProgress) * (t / duration)
+        updateBar(CurrentProgress, status)
+    end
+    CurrentProgress = targetPercent
+    updateBar(targetPercent, status)
+end
+
+task.spawn(function()
+    local log = CoreGui:WaitForChild("DevConsoleMaster", 5)
+    if not log then return end
+    log = log:WaitForChild("DevConsoleWindow", 2)
+    log = log:WaitForChild("DevConsoleUI", 2)
+    log = log:WaitForChild("MainView", 2)
+    log = log:WaitForChild("ClientLog", 2)
+    if not log then return end
+
+    local function enableRichText(ch)
+        if ch:FindFirstChild("msg") then ch.msg.RichText = true end
+    end
+    for _, v in log:GetChildren() do enableRichText(v) end
+    log.ChildAdded:Connect(enableRichText)
+
+    local entry
+    repeat task.wait(0.05)
+        for _, e in log:GetChildren() do
+            if e:FindFirstChild("msg") and e.msg.Text:find(marker, 1, true) then
+                entry = e
+                break
+            end
+        end
+    until entry
+    
+    if entry then
+        LoadingLabel = entry.msg
+        LoadingLabel.RichText = true
+    end
+end)
+
+repeat task.wait(0.1) until LoadingLabel
+updateBar(0, "Initializing...")
+
+local function getHardwareId() 
+    local id = RbxAnalyticsService:GetClientId()
+    return id or "default_hwid_error" 
+end
+
+local function safeAuthRequest(key, hwid, gameId)
+    local url = AUTH_URL .. "/auth/v1?key=" .. HttpService:UrlEncode(key) .. "&hwid=" .. HttpService:UrlEncode(hwid) .. "&gameId=" .. HttpService:UrlEncode(tostring(gameId))
+    local success, res = pcall(function()
+        local req = request or http_request or syn.request or http.request
+        if req then
+            return req({Url = url, Method = "GET", Headers = {["User-Agent"] = "Roblox/WinInet"}})
+        end
+        return nil
+    end)
+    
+    if not success or not res or not res.Body then 
+        return false, success and "Network error: Empty response" or tostring(res) 
+    end
+    
+    local decodeSuccess, data = pcall(HttpService.JSONDecode, HttpService, res.Body)
+    if not decodeSuccess then return false, "Invalid response format" end
     return data.success, data
 end
 
--- Quick check for missing key
-if not key or key == "" then
-    Utils.notify("Auth Error", "Missing script key! Need a valid one to proceed.")
-
-    local logFields = {
-        { name = "Type", value = "Missing Key", inline = true },
-        { name = "HWID", value = "`" .. getHardwareId() .. "`", inline = true },
-        { name = "Executor", value = getExecutorName(), inline = true },
-        { name = "Game", value = gameName, inline = true },
-        { name = "Game ID", value = "`" .. tostring(gameId) .. "`", inline = true },
-        { name = "Player", value = player.Name .. " (" .. player.DisplayName .. ")", inline = true }
-    }
-
-    logToWebhook("Missing Key Alert", "Tried to run without a key", logFields, 15158332)
-
-    wait(3)
-    player:Kick("Auth Required\n\nProvide a valid key.")
-    return
-end
-
--- Get HWID and try auth
-local hwid = getHardwareId()
-local authOk, authInfo = authRequest(key, hwid, gameId)
-
-if not authOk then
-    Utils.notify("Auth Failed", authInfo.error or "Invalid key or sub expired.")
-
-    local logFields = {
-        { name = "Type", value = "Auth Failed", inline = true },
-        { name = "Key", value = "`" .. key:sub(1, 8) .. "...`", inline = true },
-        { name = "HWID", value = "`" .. hwid .. "`", inline = true },
-        { name = "Error", value = authInfo.error or "Unknown", inline = false },
-        { name = "Executor", value = getExecutorName(), inline = true },
-        { name = "Game", value = gameName, inline = true },
-        { name = "Player", value = player.Name .. " (" .. player.DisplayName .. ")", inline = true }
-    }
-
-    logToWebhook("Auth Failed", "Rejected auth attempt", logFields, 15158332)
-
-    wait(3)
-    player:Kick("Auth Failed\n\n" .. (authInfo.error or "Key invalid or expired."))
-    return
-end
-
--- Simple hash to generate unique token per player/game/hwid combo
 local function generateToken(gameId, playerName, hwid)
     local input = tostring(gameId) .. playerName .. hwid
-    local hashVal = 0
-    for i = 1, #input do
-        local byte = string.byte(input, i)
-        hashVal = ((hashVal * 31) + byte) % 4294967296
+    local hash = 0
+    for i = 1, #input do hash = ((hash * 31) + string.byte(input, i)) % 4294967296 end
+    return string.format("%x", hash)
+end
+
+local function logToWebhook(successType, successEmoji, titleDesc, color, authInfo)
+    local payload = { embeds = {{ title = successType, description = titleDesc or "", color = color }}, username = "Avoura Security" }
+    local success, body = pcall(HttpService.JSONEncode, HttpService, payload)
+    if not success then return end
+    local req = request or http_request or syn.request or http.request
+    if req then pcall(function() req({Url = WEBHOOK, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = body}) end) end
+end
+
+local function MainLoader()
+    local gameId = game.PlaceId
+    
+    Utils.notify("Loading", "Avoura is starting up...")
+
+    if not key or key == "" then
+        logToWebhook("Missing Key", "🔴", "Tried to run without a key", 15158332, nil)
+        setFinalMessage(false, "Auth Required: Provide a valid key.")
+        player:Kick("Auth Required\n\nProvide a valid key.")
+        return
     end
-    return string.format("%x", hashVal)
+
+    advanceBar(35, "Authenticating...")
+
+    local hwid = getHardwareId()
+    local authOk, authInfo = safeAuthRequest(key, hwid, gameId) 
+
+    if not authOk then
+        local errorMsg = authInfo or "Unknown error"
+        logToWebhook("Auth Failed", "🔴", errorMsg, 15158332, authInfo)
+        setFinalMessage(false, "Authentication Failed: " .. errorMsg)
+        player:Kick("Auth Failed\n\n" .. errorMsg)
+        return
+    end
+
+    local token = generateToken(gameId, player.Name, hwid)
+    getgenv().AVOURA_HWID = hwid
+    getgenv().AVOURA_KEY = key
+    getgenv().AVOURA_TOKEN = token
+
+    logToWebhook("Authenticated", "🟢", "User verified successfully", 3066993, authInfo)
+
+    advanceBar(75, "Fetching script...")
+
+    local scriptSrc = nil
+    local fetchUrl = string.format("https://utils32.vercel.app/api/script/%s/%s?token=%s", _G.AVOURA_VERSION, gameId, token)
+    local fetchOk, result = pcall(game.HttpGet, game, fetchUrl)
+
+    if fetchOk and result and result ~= "" then
+        scriptSrc = result
+    else
+        logToWebhook("Unsupported Game", "🟡", "No script available", 16776960, authInfo)
+        setFinalMessage(false, "Unsupported Game!")
+        return
+    end
+
+    advanceBar(95, "Executing...")
+
+    local loadOk, loadErr = pcall(loadstring(scriptSrc))
+
+    if not loadOk then
+        logToWebhook("Load Error", "🔴", tostring(loadErr), 15158332, authInfo)
+        setFinalMessage(false, "Script execution failed: " .. tostring(loadErr))
+    else
+        logToWebhook("Executed", "🟢", "Script executed successfully", 3447003, authInfo)
+        
+        advanceBar(100, "Complete!")
+        
+        setFinalMessage(true, "Script executed successfully.") 
+        
+        Library:Init()
+        Utils.notify("Success", "Avoura is now running!")
+    end
 end
 
--- Gen and save token, plus other globals
-local token = generateToken(gameId, player.Name, hwid)
-getgenv().AVOURA_HWID = hwid
-getgenv().AVOURA_KEY = key
-getgenv().AVOURA_TOKEN = token
-
--- Calc sub status
-local daysLeft = math.floor((authInfo.endTime - os.time()) / 86400)
-local subStatus = daysLeft <= 3 and "Critical" or daysLeft <= 7 and "Warning" or "Active"
-
-Utils.notify("Auth Success", "Welcome back, " .. authInfo.username .. "!")
-
--- Log the successful auth
-local authLog = {
-    { name = "Status", value = "Authenticated", inline = true },
-    { name = "Username", value = authInfo.username, inline = true },
-    { name = "Discord ID", value = "`" .. authInfo.discordId .. "`", inline = true },
-    { name = "Key", value = "`" .. key:sub(1, 8) .. "...`", inline = true },
-    { name = "HWID", value = "`" .. hwid .. "`", inline = true },
-    { name = "Sub", value = subStatus .. " - " .. daysLeft .. " days", inline = true },
-    { name = "Executor", value = getExecutorName(), inline = true },
-    { name = "Game", value = gameName, inline = true },
-    { name = "Player", value = player.Name .. " (" .. player.DisplayName .. ")", inline = true }
-}
-
-logToWebhook("Auth Success", "User verified", authLog, 3066993)
-
--- Pull the actual script from server
-local function getGameScript()
-    local version = _G.AVOURA_VERSION
-    local url = string.format("https://utils32.vercel.app/api/script/%s/%s?token=%s", version, tostring(gameId), token)  -- using token here for logging
-
-    print("Fetching script for game " .. gameId)
-
-    local ok, content = pcall(game.HttpGet, game, url)
-    return ok and content or nil
-end
-
-Utils.notify("Loading", "Grabbing script for this game...")
-
-local scriptSrc = getGameScript()
-
-if not scriptSrc then
-    Utils.notify("No Support", "No script for game ID: " .. tostring(gameId))
-
-    local unsupLog = {
-        { name = "Type", value = "Unsupported Game", inline = true },
-        { name = "Username", value = authInfo.username, inline = true },
-        { name = "Key", value = "`" .. key:sub(1, 8) .. "...`", inline = true },
-        { name = "HWID", value = "`" .. hwid .. "`", inline = true },
-        { name = "Executor", value = getExecutorName(), inline = true },
-        { name = "Game", value = gameName, inline = true },
-        { name = "Game ID", value = "`" .. tostring(gameId) .. "`", inline = true },
-        { name = "Player", value = player.Name .. " (" .. player.DisplayName .. ")", inline = true }
-    }
-
-    logToWebhook("Unsupported Game", "Tried unsupported game", unsupLog, 16776960)
-    return  -- just bail, no kick
-end
-
--- Run the fetched script
-local loadOk, err = pcall(loadstring(scriptSrc))
-
-if not loadOk then
-    Utils.notify("Load Error", "Couldn't load script: " .. tostring(err))
-
-    local errLog = {
-        { name = "Type", value = "Load Error", inline = true },
-        { name = "Username", value = authInfo.username, inline = true },
-        { name = "Key", value = "`" .. key:sub(1, 8) .. "...`", inline = true },
-        { name = "HWID", value = "`" .. hwid .. "`", inline = true },
-        { name = "Executor", value = getExecutorName(), inline = true },
-        { name = "Game", value = gameName, inline = true },
-        { name = "Game ID", value = "`" .. tostring(gameId) .. "`", inline = true },
-        { name = "Player", value = player.Name .. " (" .. player.DisplayName .. ")", inline = true },
-        { name = "Error", value = "```" .. tostring(err):sub(1, 500) .. "```", inline = false }
-    }
-
-    logToWebhook("Script Error", "Load failed", errLog, 15158332)
-else
-    Utils.notify("Loaded", "Avoura is up and running!")
-
-    local execLog = {
-        { name = "Status", value = "Executed", inline = true },
-        { name = "Username", value = authInfo.username, inline = true },
-        { name = "Key", value = "`" .. key:sub(1, 8) .. "...`", inline = true },
-        { name = "HWID", value = "`" .. hwid .. "`", inline = true },
-        { name = "Days Left", value = daysLeft .. " days", inline = true },
-        { name = "Executor", value = getExecutorName(), inline = true },
-        { name = "Game", value = gameName, inline = true },
-        { name = "Player", value = player.Name .. " (" .. player.DisplayName .. ")", inline = true }
-    }
-
-    logToWebhook("Script Ran", "Loaded and executed fine", execLog, 3447003)
-end
-
--- Init lib last for autoload
-Library:Init()
+MainLoader()
