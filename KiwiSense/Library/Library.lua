@@ -7054,7 +7054,7 @@ local Library do
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(0, 0),
-                    Position = UDim2New(0, Camera.ViewportSize.X / 3.5, 0, Camera.ViewportSize.Y / 3.5),
+                    Position = UDim2New(0, Camera.ViewportSize.X / 3.5, 0, Camera.ViewportSize.Y / 8),
                     Size = Window.Size,
                     ZIndex = 2,
                     BorderSizePixel = 0,
