@@ -1428,25 +1428,7 @@ end
 
 -- beware of somewhat horrible code
 local Library do
-
-    local FetchIcons, Icons = pcall(function()
-        return loadstring(
-            game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")
-        )()
-    end)
-
-    function Library:GetIcon(IconName)
-        if FetchIcons and Icons then
-            local Success, Icon = pcall(Icons.GetAsset, IconName)
-            if Success and Icon then
-                return Icon
-            end
-        end
-        -- Fallback to standard ID if Lucide fails or input is just numbers
-        return "rbxassetid://" .. tostring(IconName)
-    end
-	
-    -- Services
+    -- 1. Define Services FIRST so they are available everywhere
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local HttpService = game:GetService("HttpService")
@@ -1456,12 +1438,12 @@ local Library do
     local SoundService = cloneref and cloneref(game:GetService("SoundService")) or game:GetService("SoundService")
     local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui")
 
-    -- Variables
+    -- 2. Variables
     local LocalPlayer = Players.LocalPlayer
     local Camera = Workspace.CurrentCamera
     local Mouse = LocalPlayer:GetMouse()
 
-    -- Globals
+    -- 3. Globals
     local FromRGB = Color3.fromRGB
     local FromHSV = Color3.fromHSV
     local FromHex = Color3.fromHex
@@ -1513,7 +1495,7 @@ local Library do
 
     getgenv().Options = { }
 
-    -- Library
+    -- 4. Initialize Library Table
     Library = {
         Theme = nil,
 
@@ -1533,36 +1515,27 @@ local Library do
             Themes = "kiwisense/Themes"
         },
 
-        Images = { -- you're welcome to reupload the images and replace it with your own links
+        Images = { 
             ["Saturation"] = {"Saturation.png", "https://github.com/sametexe001/images/blob/main/saturation.png?raw=true" },
             ["Value"] = { "Value.png", "https://github.com/sametexe001/images/blob/main/value.png?raw=true" },
             ["Hue"] = { "Hue.png", "https://github.com/sametexe001/images/blob/main/horizontalhue.png?raw=true" },
             ["Checkers"] = { "Checkers.png", "https://github.com/sametexe001/images/blob/main/checkers.png?raw=true" },
         },
 
-        -- Ignore below
         Pages = { },
         Sections = { },
-
         Connections = { },
         Threads = { },
-
         Themes = { },
         ThemeMap = { },
         ThemeItems = { },
         ThemeColorpickers = { },
-
         OpenFrames = { },
-
         CurrentPage = nil,
-
         SearchItems = { },
-
         SetFlags = { },
-
         UnnamedConnections = 0,
         UnnamedFlags = 0,
-
         Holder = nil,
         NotifHolder = nil,
         UnusedHolder = nil,
@@ -1570,6 +1543,24 @@ local Library do
         Font = nil,
         KeyList = nil,
     }
+
+    -- 5. Add Lucide Icons Logic (NOW that Library is defined)
+    local FetchIcons, Icons = pcall(function()
+        return loadstring(
+            game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")
+        )()
+    end)
+
+    function Library:GetIcon(IconName)
+        if FetchIcons and Icons then
+            local Success, Icon = pcall(Icons.GetAsset, IconName)
+            if Success and Icon then
+                return Icon
+            end
+        end
+        -- Fallback to standard ID
+        return "rbxassetid://" .. tostring(IconName)
+    end
 
     local Keys = {
         ["Unknown"]           = "Unknown",
