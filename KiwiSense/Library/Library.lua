@@ -1428,7 +1428,7 @@ end
 
 -- beware of somewhat horrible code
 local Library do
-    -- 1. Define Services FIRST so they are available everywhere
+    -- Services
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local HttpService = game:GetService("HttpService")
@@ -1438,12 +1438,12 @@ local Library do
     local SoundService = cloneref and cloneref(game:GetService("SoundService")) or game:GetService("SoundService")
     local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui")
 
-    -- 2. Variables
+    -- Variables
     local LocalPlayer = Players.LocalPlayer
     local Camera = Workspace.CurrentCamera
     local Mouse = LocalPlayer:GetMouse()
 
-    -- 3. Globals
+    -- Globals
     local FromRGB = Color3.fromRGB
     local FromHSV = Color3.fromHSV
     local FromHex = Color3.fromHex
@@ -1495,7 +1495,7 @@ local Library do
 
     getgenv().Options = { }
 
-    -- 4. Initialize Library Table
+    -- Library
     Library = {
         Theme = nil,
 
@@ -1515,27 +1515,36 @@ local Library do
             Themes = "kiwisense/Themes"
         },
 
-        Images = { 
+        Images = { -- you're welcome to reupload the images and replace it with your own links
             ["Saturation"] = {"Saturation.png", "https://github.com/sametexe001/images/blob/main/saturation.png?raw=true" },
             ["Value"] = { "Value.png", "https://github.com/sametexe001/images/blob/main/value.png?raw=true" },
             ["Hue"] = { "Hue.png", "https://github.com/sametexe001/images/blob/main/horizontalhue.png?raw=true" },
             ["Checkers"] = { "Checkers.png", "https://github.com/sametexe001/images/blob/main/checkers.png?raw=true" },
         },
 
+        -- Ignore below
         Pages = { },
         Sections = { },
+
         Connections = { },
         Threads = { },
+
         Themes = { },
         ThemeMap = { },
         ThemeItems = { },
         ThemeColorpickers = { },
+
         OpenFrames = { },
+
         CurrentPage = nil,
+
         SearchItems = { },
+
         SetFlags = { },
+
         UnnamedConnections = 0,
         UnnamedFlags = 0,
+
         Holder = nil,
         NotifHolder = nil,
         UnusedHolder = nil,
@@ -1544,7 +1553,6 @@ local Library do
         KeyList = nil,
     }
 
-    -- 5. Add Lucide Icons Logic (NOW that Library is defined)
     local FetchIcons, Icons = pcall(function()
         return loadstring(
             game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")
@@ -1558,8 +1566,23 @@ local Library do
                 return Icon
             end
         end
-        -- Fallback to standard ID
+        -- Fallback to standard ID if Lucide fails or input is just numbers
         return "rbxassetid://" .. tostring(IconName)
+    end
+
+    function Library:SetIcon(Item, IconName)
+        local IconData = self:GetIcon(IconName)
+        local GuiObject = Item.Instance or Item
+
+        if type(IconData) == "table" then
+            GuiObject.Image = IconData.Url
+            GuiObject.ImageRectSize = IconData.ImageRectSize
+            GuiObject.ImageRectOffset = IconData.ImageRectOffset
+        else
+            GuiObject.Image = IconData
+            GuiObject.ImageRectSize = Vector2New(0, 0)
+            GuiObject.ImageRectOffset = Vector2New(0, 0)
+        end
     end
 
     local Keys = {
@@ -6675,20 +6698,20 @@ local Library do
                     PaddingLeft = UDimNew(0, 8)
                 })
 
-                if Notification.Icon then 
+                        if Notification.Icon then 
                     Items["Icon"] = Instances:Create("ImageLabel", {
                         Parent = Items["Notification"].Instance,
                         Name = "\0",
                         ImageColor3 = Notification.IconColor,
                         BorderColor3 = FromRGB(0, 0, 0),
                         AnchorPoint = Vector2New(1, 0),
-                        Image = Library:GetIcon(Notification.Icon),
                         BackgroundTransparency = 1,
                         Position = UDim2New(1, 5, 0, 0),
                         Size = UDim2New(0, 22, 0, 22),
                         BorderSizePixel = 0,
                         BackgroundColor3 = FromRGB(255, 255, 255)
                     })
+                    Library:SetIcon(Items["Icon"], Notification.Icon)
                 end
 
                 Items["Title"] = Instances:Create("TextLabel", {
@@ -6820,7 +6843,7 @@ local Library do
                     CornerRadius = UDimNew(0, 5)
                 })
 
-                Items["Logo"] = Instances:Create("ImageLabel", {
+Items["Logo"] = Instances:Create("ImageLabel", {
                     Parent = Items["Watermark"].Instance,
                     Name = "\0",
                     ImageColor3 = FromRGB(196, 231, 255),
@@ -6828,13 +6851,13 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = Library:GetIcon(Logo),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 7, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Logo"]:AddToTheme({ImageColor3 = "Accent"})
+                Library:SetIcon(Items["Logo"], Logo)
 
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Watermark"].Instance,
@@ -7193,7 +7216,7 @@ local Library do
                     return RGBSequence{RGBSequenceKeypoint(0, FromRGB(255, 255, 255)), RGBSequenceKeypoint(1, Library.Theme["Dark Gradient"])}
                 end})
 
-                Items["Logo"] = Instances:Create("ImageLabel", {
+Items["Logo"] = Instances:Create("ImageLabel", {
                     Parent = Items["Topbar"].Instance,
                     Name = "\0",
                     ImageColor3 = FromRGB(196, 231, 255),
@@ -7201,13 +7224,13 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = Library:GetIcon(Window.Logo),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 7, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Logo"]:AddToTheme({ImageColor3 = "Accent"})
+                Library:SetIcon(Items["Logo"], Window.Logo)
 
                 Items["Title"] = Instances:Create("TextLabel", {
                     Parent = Items["Topbar"].Instance,
@@ -7443,11 +7466,10 @@ local Library do
 
                     Items["FloatingButton"]:MakeDraggable()
 
-                    Instances:Create("ImageLabel", {
+local FloatIcon = Instances:Create("ImageLabel", {
                         Parent = Items["FloatingButton"].Instance,
                         BorderColor3 = FromRGB(0, 0, 0),
                         Name = "\0",
-                        Image = Library:GetIcon(Window.Logo),
                         BackgroundTransparency = 1,
                         AnchorPoint = Vector2New(0.5, 0.5),
                         Position = UDim2New(0.5, 0, 0.5, 0),
@@ -7456,6 +7478,7 @@ local Library do
                         BorderSizePixel = 0,
                         BackgroundColor3 = FromRGB(255, 255, 255)
                     })
+                    Library:SetIcon(FloatIcon, Window.Logo)
 
                     Instances:Create("UICorner", {
                         Parent = Items["FloatingButton"].Instance,
@@ -7686,20 +7709,20 @@ local Library do
                     CornerRadius = UDimNew(1, 0)
                 })
 
-                Items["Icon"] = Instances:Create("ImageLabel", {
+Items["Icon"] = Instances:Create("ImageLabel", {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
                     ImageTransparency = 0.5,
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = Library:GetIcon(Page.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 5, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Icon"]:AddToTheme({ImageColor3 = "Image"})
+                Library:SetIcon(Items["Icon"], Page.Icon)
 
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Inactive"].Instance,
@@ -7946,20 +7969,20 @@ local Library do
                     CornerRadius = UDimNew(1, 0)
                 })
 
-                Items["Icon"] = Instances:Create("ImageLabel", {
+Items["Icon"] = Instances:Create("ImageLabel", {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
                     ImageTransparency = 0.5,
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = Library:GetIcon(SubPage.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 5, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Icon"]:AddToTheme({ImageColor3 = "Image"})
+                Library:SetIcon(Items["Icon"], SubPage.Icon)
 
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Inactive"].Instance,
@@ -8959,7 +8982,7 @@ local Library do
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Title"]:AddToTheme({TextColor3 = "Text"})
 
-                Items["Icon"] = Instances:Create("ImageLabel", {
+Items["Icon"] = Instances:Create("ImageLabel", {
                     Parent = Items["Topbar"].Instance,
                     Name = "\0",
                     ImageColor3 = FromRGB(196, 231, 255),
@@ -8967,13 +8990,13 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 18, 0, 18),
                     AnchorPoint = Vector2New(1, 0.5),
-                    Image = Library:GetIcon(Section.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(1, -7, 0.5, -1),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Icon"]:AddToTheme({ImageColor3 = "Accent"})
+                Library:SetIcon(Items["Icon"], Section.Icon)
 
                 Instances:Create("Frame", {
                     Parent = Items["Topbar"].Instance,
