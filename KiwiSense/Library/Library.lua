@@ -1428,6 +1428,24 @@ end
 
 -- beware of somewhat horrible code
 local Library do
+
+    local FetchIcons, Icons = pcall(function()
+        return loadstring(
+            game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")
+        )()
+    end)
+
+    function Library:GetIcon(IconName)
+        if FetchIcons and Icons then
+            local Success, Icon = pcall(Icons.GetAsset, IconName)
+            if Success and Icon then
+                return Icon
+            end
+        end
+        -- Fallback to standard ID if Lucide fails or input is just numbers
+        return "rbxassetid://" .. tostring(IconName)
+    end
+	
     -- Services
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
@@ -6673,7 +6691,7 @@ local Library do
                         ImageColor3 = Notification.IconColor,
                         BorderColor3 = FromRGB(0, 0, 0),
                         AnchorPoint = Vector2New(1, 0),
-                        Image = "rbxassetid://"..Notification.Icon,
+                        Image = Library:GetIcon(Notification.Icon),
                         BackgroundTransparency = 1,
                         Position = UDim2New(1, 5, 0, 0),
                         Size = UDim2New(0, 22, 0, 22),
@@ -6819,7 +6837,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..Logo,
+                    Image = Library:GetIcon(Logo),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 7, 0.5, 0),
                     ZIndex = 2,
@@ -7192,7 +7210,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..Window.Logo,
+                    Image = Library:GetIcon(Window.Logo),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 7, 0.5, 0),
                     ZIndex = 2,
@@ -7438,7 +7456,7 @@ local Library do
                         Parent = Items["FloatingButton"].Instance,
                         BorderColor3 = FromRGB(0, 0, 0),
                         Name = "\0",
-                        Image = "rbxassetid://" .. Window.Logo,
+                        Image = Library:GetIcon(Window.Logo),
                         BackgroundTransparency = 1,
                         AnchorPoint = Vector2New(0.5, 0.5),
                         Position = UDim2New(0.5, 0, 0.5, 0),
@@ -7684,7 +7702,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..Page.Icon,
+                    Image = Library:GetIcon(Page.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 5, 0.5, 0),
                     ZIndex = 2,
@@ -7944,7 +7962,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..SubPage.Icon,
+                    Image = Library:GetIcon(SubPage.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 5, 0.5, 0),
                     ZIndex = 2,
@@ -8958,7 +8976,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 18, 0, 18),
                     AnchorPoint = Vector2New(1, 0.5),
-                    Image = "rbxassetid://"..Section.Icon,
+                    Image = Library:GetIcon(Section.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(1, -7, 0.5, -1),
                     ZIndex = 2,
