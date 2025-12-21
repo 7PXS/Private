@@ -9758,12 +9758,12 @@ Items["Icon"] = Instances:Create("ImageLabel", {
                 })
             end
 
-            function Textbox:Set(Value)
+function Textbox:Set(Value)
                 Items["Input"].Instance.Text = tostring(Value)
                 Textbox.Value = Value
                 Library.Flags[Textbox.Flag] = Value
 
-                Items["Input"]:ChangeItemTheme({TextColor3 = "Text", PlaceholderColor3 = "Text Inactive"})
+                Items["Input"]:ChangeItemTheme({TextColor3 = "Text", PlaceholderColor3 = "Inactive Text"})
                 Items["Input"]:Tween(nil, {TextColor3 = Library.Theme.Text})
 
                 if Textbox.Callback then
@@ -9794,8 +9794,8 @@ Items["Icon"] = Instances:Create("ImageLabel", {
 
             TableInsert(PageSearchData, SearchData)
 
-            Items["Input"]:Connect("Focused", function()
-                Items["Input"]:ChangeItemTheme({TextColor3 = "Accent", PlaceholderColor3 = "Text Inactive"})
+Items["Input"]:Connect("Focused", function()
+                Items["Input"]:ChangeItemTheme({TextColor3 = "Accent", PlaceholderColor3 = "Inactive Text"})
                 Items["Input"]:Tween(nil, {TextColor3 = Library.Theme.Accent})
             end)
 
