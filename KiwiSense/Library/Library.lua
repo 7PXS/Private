@@ -1967,19 +1967,19 @@ local Library do
             local ResizeMax = Gui.Parent.AbsoluteSize - Gui.AbsoluteSize
 
             local ResizeButton = Instances:Create("ImageButton", {
-                Parent = Gui,
+				Parent = Gui,
                 Image = "rbxassetid://7368471234",
-                AnchorPoint = Vector2New(1, 1),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(0, 9, 0, 9),
-                Position = UDim2New(1, -4, 1, -4),
+				AnchorPoint = Vector2New(1, 1),
+				BorderColor3 = FromRGB(0, 0, 0),
+				Size = UDim2New(0, 9, 0, 9),
+				Position = UDim2New(1, -4, 1, -4),
                 Name = "\0",
-                BorderSizePixel = 0,
-                BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
                 ZIndex = 5,
-                AutoButtonColor = false,
+				AutoButtonColor = false,
                 Visible = true,
-            })  ResizeButton:AddToTheme({ImageColor3 = "Accent"})
+			})  ResizeButton:AddToTheme({ImageColor3 = "Accent"})
 
             local InputChanged
 
@@ -2076,18 +2076,18 @@ local Library do
     end
 
     local Themes = {
-        ["Preset"] = {
-            ["Background"] = FromRGB(15, 15, 20),
-            ["Inline"] = FromRGB(22, 22, 30),
-            ["Shadow"] = FromRGB(0, 0, 0),
-            ["Text"] = FromRGB(235, 225, 255),
-            ["Image"] = FromRGB(255, 255, 255),
-            ["Dark Gradient"] = FromRGB(211, 211, 211),
-            ["Inactive Text"] = FromRGB(150, 140, 170),
-            ["Element"] = FromRGB(28, 28, 36),
-            ["Accent"] = FromRGB(170, 110, 255),
-            ["Border"] = FromRGB(40, 38, 48)
-        },
+	    ["Preset"] = {
+	        ["Background"] = FromRGB(15, 15, 20),
+	        ["Inline"] = FromRGB(22, 22, 30),
+	        ["Shadow"] = FromRGB(0, 0, 0),
+	        ["Text"] = FromRGB(235, 225, 255),
+	        ["Image"] = FromRGB(255, 255, 255),
+	        ["Dark Gradient"] = FromRGB(211, 211, 211),
+	        ["Inactive Text"] = FromRGB(150, 140, 170),
+	        ["Element"] = FromRGB(28, 28, 36),
+	        ["Accent"] = FromRGB(170, 110, 255),
+	        ["Border"] = FromRGB(40, 38, 48)
+	    },
 
         ["Halloween"] = {
             ["Background"] = FromRGB(11, 10, 9),
@@ -2374,7 +2374,7 @@ local Library do
         local ConfigFolderName = StringGSub(Library.Folders.Configs, Library.Folders.Directory .. "/", "")
 
         for Index, Value in listfiles(Library.Folders.Configs) do
-            local FileName = StringGSub(Value, Library.Folders.Directory .. "\" .. ConfigFolderName .. "\", "")
+            local FileName = StringGSub(Value, Library.Folders.Directory .. "\\" .. ConfigFolderName .. "\\", "")
             List[Index] = FileName
         end
 
@@ -2496,7 +2496,7 @@ local Library do
         local ConfigFolderName = StringGSub(Library.Folders.Themes, Library.Folders.Directory .. "/", "")
 
         for Index, Value in listfiles(Library.Folders.Themes) do
-            local FileName = StringGSub(Value, Library.Folders.Directory .. "\" .. ConfigFolderName .. "\", "")
+            local FileName = StringGSub(Value, Library.Folders.Directory .. "\\" .. ConfigFolderName .. "\\", "")
             List[Index] = FileName
         end
 
@@ -8531,12 +8531,12 @@ Items["Icon"] = Instances:Create("ImageLabel", {
 
                                 OptionData:Toggle("Active")
 
-for Index, Value in Dropdown.Options do 
-                                if Value ~= OptionData then
-                                    Value.Selected = false 
-                                    Value:Toggle("Inactive")
+                                for Index, Value in Dropdown.Options do 
+                                    if Value ~= OptionData then
+                                        Value.Selected = false 
+                                        Value:Toggle("Inactive")
+                                    end
                                 end
-                            end
 
                                 DropdownItems["Value"].Instance.Text = OptionData.Name 
                             else
@@ -8650,15 +8650,15 @@ for Index, Value in Dropdown.Options do
                         Dropdown.Value = OptionData.Name
                         Library.Flags[Dropdown.Flag] = OptionData.Name
 
-for Index, Value in Dropdown.Options do 
-                        if Value ~= OptionData then
-                            Value.Selected = false 
-                            Value:Toggle("Inactive")
-                        else
-                            Value.Selected = true 
-                            Value:Toggle("Active")
+                        for Index, Value in Dropdown.Options do 
+                            if Value ~= OptionData then
+                                Value.Selected = false 
+                                Value:Toggle("Inactive")
+                            else
+                                Value.Selected = true 
+                                Value:Toggle("Active")
+                            end
                         end
-                    end
 
                         DropdownItems["Value"].Instance.Text = OptionData.Name
                     end
@@ -9645,17 +9645,17 @@ Items["Icon"] = Instances:Create("ImageLabel", {
 
             TableInsert(PageSearchData, SearchData)
 
-                function Label:SetText(NewText)
-                    Label.Name = NewText
-                    Items["Text"].Instance.Text = NewText
-                end
-            
-                -- ADD THIS TO EXPOSE THE INSTANCE:
-                Label.TextLabel = Items["Text"]
-            
-                function Label:SetVisibility(Bool)
-                    Items["Label"].Instance.Visible = Bool
-                end
+			    function Label:SetText(NewText)
+			        Label.Name = NewText
+			        Items["Text"].Instance.Text = NewText
+			    end
+			
+			    -- ADD THIS TO EXPOSE THE INSTANCE:
+			    Label.TextLabel = Items["Text"]
+			
+			    function Label:SetVisibility(Bool)
+			        Items["Label"].Instance.Visible = Bool
+			    end
 
             return Label 
         end
@@ -9758,12 +9758,12 @@ Items["Icon"] = Instances:Create("ImageLabel", {
                 })
             end
 
-function Textbox:Set(Value)
+            function Textbox:Set(Value)
                 Items["Input"].Instance.Text = tostring(Value)
                 Textbox.Value = Value
                 Library.Flags[Textbox.Flag] = Value
 
-                Items["Input"]:ChangeItemTheme({TextColor3 = "Text", PlaceholderColor3 = "Inactive Text"})
+                Items["Input"]:ChangeItemTheme({TextColor3 = "Text", PlaceholderColor3 = "Text Inactive"})
                 Items["Input"]:Tween(nil, {TextColor3 = Library.Theme.Text})
 
                 if Textbox.Callback then
@@ -9794,8 +9794,8 @@ function Textbox:Set(Value)
 
             TableInsert(PageSearchData, SearchData)
 
-Items["Input"]:Connect("Focused", function()
-                Items["Input"]:ChangeItemTheme({TextColor3 = "Accent", PlaceholderColor3 = "Inactive Text"})
+            Items["Input"]:Connect("Focused", function()
+                Items["Input"]:ChangeItemTheme({TextColor3 = "Accent", PlaceholderColor3 = "Text Inactive"})
                 Items["Input"]:Tween(nil, {TextColor3 = Library.Theme.Accent})
             end)
 
