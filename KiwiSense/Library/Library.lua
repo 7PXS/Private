@@ -2711,7 +2711,7 @@ local Library do
             return Toggle, Items 
         end
 
-        Components.Dropdown = function(Data)
+Components.Dropdown = function(Data)
             local Dropdown = {
                 Value = { },
                 Flag = Data.Flag,
@@ -3005,7 +3005,6 @@ local Library do
                         else
                             Value.Selected = true 
                             Value:Toggle("Active")
-                            break
                         end
                     end
 
@@ -3099,9 +3098,8 @@ local Library do
                 end
 
                 function OptionData:Set()
-                    OptionData.Selected = not OptionData.Selected
-
                     if Data.Multi then 
+                        OptionData.Selected = not OptionData.Selected
                         local Index = TableFind(Dropdown.Value, OptionData.Name)
 
                         if Index then 
@@ -3118,28 +3116,20 @@ local Library do
 
                         Items["Value"].Instance.Text = TextFormat
                     else
-                        if OptionData.Selected then 
-                            Dropdown.Value = OptionData.Name
-                            Library.Flags[Dropdown.Flag] = OptionData.Name
+                        OptionData.Selected = true
+                        Dropdown.Value = OptionData.Name
+                        Library.Flags[Dropdown.Flag] = OptionData.Name
 
-                            OptionData:Toggle("Active")
+                        OptionData:Toggle("Active")
 
-                            for Index, Value in Dropdown.Options do 
-                                if Value ~= OptionData then
-                                    Value.Selected = false 
-                                    Value:Toggle("Inactive")
-                                    break
-                                end
+                        for Index, Value in Dropdown.Options do 
+                            if Value ~= OptionData then
+                                Value.Selected = false 
+                                Value:Toggle("Inactive")
                             end
-
-                            Items["Value"].Instance.Text = OptionData.Name 
-                        else
-                            Dropdown.Value = nil
-                            Library.Flags[Dropdown.Flag] = nil
-
-                            OptionData:Toggle("Inactive")
-                            Items["Value"].Instance.Text = "--"
                         end
+
+                        Items["Value"].Instance.Text = OptionData.Name 
                     end
 
                     if Data.Callback then 
