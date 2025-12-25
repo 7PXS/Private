@@ -8,7 +8,8 @@
     local lighting = game:GetService("Lighting")
     local run = game:GetService("RunService")
     local stats = game:GetService("Stats")
-    local coregui = game.Players.LocalPlayer.PlayerGui
+    local coregui = gethui()
+--  local coregui = game.Players.LocalPlayer.PlayerGui
     local debris = game:GetService("Debris")
     local tween_service = game:GetService("TweenService")
     local sound_service = game:GetService("SoundService")
