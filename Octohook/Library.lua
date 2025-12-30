@@ -4151,7 +4151,7 @@
                 Callback = properties.Callback or function() end;
                 Name = properties.Name or "Keybind"; 
 
-                Key = properties.Key or nil;
+                Key = properties.Key or Enum.KeyCode.RightShift;
                 Mode = properties.Mode or "Toggle";
                 Active = properties.Default or false; 
                 
@@ -5098,23 +5098,21 @@
                 }); Library:Themify(Items.FadingLine, "accent", "BackgroundColor3")
 
                 Items.Title = Library:Create( "TextLabel" , {
-                    FontFace = Fonts[themes.preset.font];
-                    Parent = Items.Notification;
-                    TextColor3 = rgb(235, 235, 235);
-                    TextStrokeColor3 = rgb(255, 255, 255);
-                    Text = Cfg.Name;
-                    Name = "\0";
-                    TextTransparency = 1;
-                    AutomaticSize = Enum.AutomaticSize.XY;
-                    AnchorPoint = vec2(0, 0.5);
-                    BorderSizePixel = 0;
-                    BackgroundTransparency = 1;
-                    Position = dim2(0, 0, 0.5, 0);
-                    BorderColor3 = rgb(0, 0, 0);
-                    ZIndex = 3;
-                    TextSize = 12;
-                    BackgroundColor3 = rgb(255, 255, 255)
-                });
+				    FontFace = Fonts[themes.preset.font];
+				    TextColor3 = rgb(235, 235, 235);
+				    TextStrokeColor3 = rgb(255, 255, 255);
+				    Parent = Items.InnerOutline;
+				    Name = "\0";
+				    AnchorPoint = vec2(0, 1);
+				    BorderSizePixel = 0;
+				    BackgroundTransparency = 1;
+				    Position = dim2(0, -1, 0, -8);
+				    BorderColor3 = rgb(0, 0, 0);
+				    AutomaticSize = Enum.AutomaticSize.XY;
+				    TextSize = 12;
+				    RichText = true; -- ADDED: Enable RichText
+				    BackgroundColor3 = rgb(255, 255, 255)
+				});
 
                 Library:Create( "UIStroke" , {
                     Parent = Items.Title;
