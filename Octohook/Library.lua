@@ -1380,7 +1380,7 @@
                     ZIndex = 2;
                     TextSize = 12;
                     BackgroundColor3 = rgb(255, 255, 255)
-                });	Library:Themify(Items.Title, "text_color", "BackgroundColor3")
+                });	Library:Themify(Items.Title, "text_color", "TextColor3")
 
                 Library:Create( "UIStroke", {
                     Parent = Items.Title;
