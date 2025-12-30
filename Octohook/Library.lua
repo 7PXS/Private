@@ -1804,7 +1804,7 @@
 
                     Items.Title = Library:Create( "TextLabel" , {
                         FontFace = Fonts[themes.preset.font];
-                        TextColor3 = rgb(235, 235, 235);
+                        TextColor3 = themes.preset.accent;
                         TextStrokeColor3 = rgb(255, 255, 255);
                         Parent = Items.InnerOutline;
                         Name = "\0";
@@ -1815,6 +1815,7 @@
                         BorderColor3 = rgb(0, 0, 0);
                         AutomaticSize = Enum.AutomaticSize.XY;
                         TextSize = 12;
+						RichText = true;
                         BackgroundColor3 = rgb(255, 255, 255)
                     });
 
