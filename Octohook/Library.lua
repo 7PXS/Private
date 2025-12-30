@@ -1896,7 +1896,6 @@
                     });
 
                     Items.Text = Library:Create( "TextLabel" , {
-                        RichText = true;
                         Parent = Items.Background;
                         TextColor3 = themes.preset.accent;
                         TextStrokeColor3 = rgb(255, 255, 255);
@@ -1910,6 +1909,7 @@
                         FontFace = Fonts[themes.preset.font];
                         ZIndex = 2;
                         TextSize = 12;
+						RichText = true;
                         BackgroundColor3 = themes.preset.accent
                     });	Library:Themify(Items.Text, "accent", "TextColor3")
 
@@ -2312,6 +2312,7 @@
                         BorderColor3 = rgb(0, 0, 0);
                         ZIndex = 2;
                         TextSize = 12;
+						RichText = true;
                         BackgroundColor3 = rgb(255, 255, 255)
                     });
 
@@ -2458,6 +2459,7 @@
                         BorderColor3 = rgb(0, 0, 0);
                         ZIndex = 2;
                         TextSize = 12;
+						RichText = true;
                         BackgroundColor3 = rgb(255, 255, 255)
                     });
 
@@ -2658,6 +2660,7 @@
                     BorderColor3 = rgb(0, 0, 0);
                     ZIndex = 2;
                     TextSize = 12;
+					RichText = true;
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
 
@@ -5455,6 +5458,7 @@
                         BorderColor3 = rgb(0, 0, 0);
                         ZIndex = 2;
                         TextSize = 12;
+						RichText = true;
                         BackgroundColor3 = rgb(255, 255, 255)
                     });
 
