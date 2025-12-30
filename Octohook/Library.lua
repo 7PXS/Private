@@ -25,7 +25,7 @@
 
 -- Library init
     getgenv().Library = {
-        Directory = "octo",
+        Directory = "RootBeer",
         Folders = {
             "/fonts",
             "/configs",
@@ -47,7 +47,7 @@
         preset = {
             inline = rgb(46, 46, 46),
             outline = rgb(10, 10, 15),
-            accent = rgb(19, 128, 225),
+            accent = rgb(255, 179, 81),
             background = rgb(20, 20, 25),              
             misc_1 = rgb(30, 30, 35),
             text_color = rgb(245, 245, 245),
