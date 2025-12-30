@@ -52,7 +52,7 @@ local function LoadLibrary()
         ["TeamCheck"] = true;
 
         -- Boxes
-        ["Boxes"] = true;
+        ["Boxes"] = false;
         ["BoxType"] = "Box";
         
         ["Box Gradient 1"] = { Color = Theme.Accent, Transparency = 0.8 }; 
@@ -65,9 +65,9 @@ local function LoadLibrary()
         ["Box Fill Rotation"] = 0;
 
         -- Healthbar
-        ["Healthbar"] = true;
+        ["Healthbar"] = false;
         ["Healthbar_Position"] = "Left";
-        ["Healthbar_Number"] = true;
+        ["Healthbar_Number"] = false;
         ["Healthbar_Low"] = { Color = Color3.fromRGB(255, 0, 0), Transparency = 1};
         ["Healthbar_Medium"] = { Color = Color3.fromRGB(255, 255, 0), Transparency = 1};
         ["Healthbar_High"] = { Color = Color3.fromRGB(0, 255, 0), Transparency = 1};
@@ -81,32 +81,32 @@ local function LoadLibrary()
         ["Healthbar_Easing_Speed"] = 1;
 
         -- Armor Bar
-        ["ArmorBar"] = true;
+        ["ArmorBar"] = false;
         ["ArmorBar_Color"] = { Color = Color3.fromRGB(50, 150, 255), Transparency = 1 }; -- Fixed Blue
         ["ArmorBar_Background"] = { Color = Color3.fromRGB(0, 0, 0), Transparency = 0.5 };
 
         -- Text Elements
-        ["Name_Text"] = true; 
+        ["Name_Text"] = false; 
         ["Name_Text_Color"] = { Color = Theme.Text };
         ["Name_Text_Position"] = "Top";
         ["Name_Text_Font"] = "Verdana";
         ["Name_Text_Size"] = 11;
         
-        ["Distance_Text"] = true; 
+        ["Distance_Text"] = false; 
         ["Distance_Text_Color"] = { Color = Theme.Text };
         ["Distance_Text_Position"] = "Bottom";
         ["Distance_Text_Font"] = "Verdana";
         ["Distance_Text_Size"] = 11;
 
         -- Weapon Text
-        ["Weapon_Text"] = true; 
+        ["Weapon_Text"] = false; 
         ["Weapon_Text_Color"] = { Color = Theme.Text };
         ["Weapon_Text_Position"] = "Bottom";
         ["Weapon_Text_Font"] = "Verdana";
         ["Weapon_Text_Size"] = 11;
 
         -- NEW: Skeleton Options
-        ["Skeleton"] = true;
+        ["Skeleton"] = false;
         ["Skeleton_Thickness"] = 1.5;
         ["Skeleton_Color"] = { Color = Color3.new(1,1,1), Transparency = 0 }; -- White Default
         ["Skeleton_Transparency"] = 0;
