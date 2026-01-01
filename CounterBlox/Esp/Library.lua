@@ -49,8 +49,8 @@ local function LoadLibrary()
 
     local Options = {} 
     local MiscOptions = {
-        ["Enabled"] = true;
-        ["TeamCheck"] = true;
+        ["Enabled"] = false;
+        ["TeamCheck"] = false;
 
         -- Boxes
         ["Boxes"] = false;
@@ -66,7 +66,7 @@ local function LoadLibrary()
         ["Box Fill Rotation"] = 0;
 
         -- Healthbar
-        ["Healthbar"] = true;
+        ["Healthbar"] = false;
         ["Healthbar_Position"] = "Left";
         ["Healthbar_Number"] = false;
         ["Healthbar_Low"] = { Color = Color3.fromRGB(255, 0, 0), Transparency = 1};
@@ -76,7 +76,7 @@ local function LoadLibrary()
         ["Healthbar_Font"] = "Verdana";
         ["Healthbar_Text_Size"] = 11;
         ["Healthbar_Thickness"] = 3; 
-        ["Healthbar_Tween"] = true;
+        ["Healthbar_Tween"] = false;
         ["Healthbar_EasingStyle"] = "Circular";
         ["Healthbar_EasingDirection"] = "InOut";
         ["Healthbar_Easing_Speed"] = 1;
@@ -106,7 +106,7 @@ local function LoadLibrary()
         ["Weapon_Text_Size"] = 11;
 
         -- Visibility Check Toggle
-        ["VisCheck_Colors"] = true;
+        ["VisCheck_Colors"] = false;
 
         -- Skeleton Options
         ["Skeleton"] = false;
@@ -122,8 +122,8 @@ local function LoadLibrary()
         ["Chams_Anim_Speed"] = 2;
         
         -- FLAGS
-        ["Flags_Enabled"] = true;
-        ["Flags_Visible"] = true;
+        ["Flags_Enabled"] = false;
+        ["Flags_Visible"] = false;
     }
 
     Options = setmetatable({}, {
