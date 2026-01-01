@@ -1,14 +1,12 @@
 --[[
-    KiwiSense ESP Library v2
+    KiwiSense ESP Library v2.1
     Theme: Preset (Purple/Dark Grey)
     
-    Updates:
-        - Fixed Box Fill for both Corner and Normal boxes.
-        - Added UIStroke to Corner Boxes for consistent styling.
-        - Overhauled Chams: Always animated, no outlines, multiple styles.
-        - Fixed Health Text showing "Label".
-        - Added Flags System (Currently supports 'Visible' flag).
-        - Added Toggle for Visibility Check colors.
+    Fixes:
+        - Fixed getgenv() nil check for compatibility.
+        - Fixed Flags not appearing (Added parenting logic).
+        - Fixed Loop binding crash on re-run.
+        - Added robust nil checks for Boxes and Corners.
 ]]
 
 local function LoadLibrary()
@@ -28,7 +26,8 @@ local function LoadLibrary()
         return cloneref and cloneref(instance) or instance
     end
 
-    if getgenv().KiwiSenseEsp then 
+    -- Safety check for getgenv
+    if getgenv and getgenv().KiwiSenseEsp then 
         local OldEsp = getgenv().KiwiSenseEsp
         if type(OldEsp.Unload) == "function" then
             task.spawn(OldEsp.Unload)
@@ -53,7 +52,7 @@ local function LoadLibrary()
 
         -- Boxes
         ["Boxes"] = false;
-        ["BoxType"] = "Corner"; -- Default to Corner since we fixed it
+        ["BoxType"] = "Corner"; -- Default to Corner
         
         ["Box Gradient 1"] = { Color = Theme.Accent, Transparency = 0.8 }; 
         ["Box Gradient 2"] = { Color = Theme.Accent, Transparency = 0.8 };
@@ -129,7 +128,7 @@ local function LoadLibrary()
         __index = MiscOptions, 
         __newindex = function(self, key, value) 
             MiscOptions[key] = value
-            local Esp = getgenv().KiwiSenseEsp
+            local Esp = getgenv and getgenv().KiwiSenseEsp
             if Esp then
                 Esp.RefreshElements(key, value) 
             end
@@ -223,7 +222,7 @@ local function LoadLibrary()
             Overrides = {} 
         }
         
-        getgenv().KiwiSenseEsp = Esp
+        if getgenv then getgenv().KiwiSenseEsp = Esp end
 
         -- Overrides
         Esp.Overrides.GetCharacter = function(player)
@@ -648,7 +647,7 @@ local function LoadLibrary()
                             AutomaticSize = Enum.AutomaticSize.XY;
                             TextSize = 12;
                             BackgroundColor3 = rgb(255, 255, 255);
-                            Text = "" -- FIXED: Initialize empty
+                            Text = ""
                         });
 
                         Esp:Create( "UIStroke", {
@@ -726,13 +725,17 @@ local function LoadLibrary()
                             BackgroundTransparency = 1,
                             Size = dim2(0, 0, 0, 0),
                             AutomaticSize = Enum.AutomaticSize.XY,
-                            BorderSizePixel = 0
+                            BorderSizePixel = 0,
+                            Position = dim2(0.5, 0, 1, 0), -- Bottom Center by default
+                            AnchorPoint = Vector2.new(0.5, 1)
                         })
                         
                         Esp:Create("UIListLayout", {
                             Parent = Items.Flags,
                             SortOrder = Enum.SortOrder.LayoutOrder,
-                            Padding = dim(0, 2)
+                            Padding = dim(0, 2),
+                            VerticalAlignment = Enum.VerticalAlignment.Bottom,
+                            HorizontalAlignment = Enum.HorizontalAlignment.Center
                         })
                     -- 
 
@@ -743,8 +746,8 @@ local function LoadLibrary()
                     Items.Chams.DepthMode = MiscOptions.Chams_Depth_Mode
                     Items.Chams.FillColor = MiscOptions.Chams_Fill_Color.Color
                     Items.Chams.FillTransparency = MiscOptions.Chams_Fill_Color.Transparency
-                    Items.Chams.OutlineColor = Color3.new(0,0,0) -- Invisible default
-                    Items.Chams.OutlineTransparency = 1 -- Always invisible
+                    Items.Chams.OutlineColor = Color3.new(0,0,0) 
+                    Items.Chams.OutlineTransparency = 1 
                     
                     for i = 1, 15 do
                         table.insert(Data.Bones, Esp:CreateBone(Esp.ScreenGui))
@@ -954,15 +957,12 @@ local function LoadLibrary()
                     if Items.Box then Items.Box.Visible = MiscOptions.Boxes and MiscOptions.BoxType == "Box" end
                     if Items.Corners then Items.Corners.Visible = MiscOptions.Boxes and MiscOptions.BoxType == "Corner" end
                     
-                    -- Box Fill Fix
                     if MiscOptions.Boxes then
                         if MiscOptions.BoxType == "Box" then
-                            -- Normal Box: Fill is Items.Box background
                             if Items.Box then
                                 Items.Box.BackgroundTransparency = MiscOptions["Box Fill"] and MiscOptions["Box Fill 1"].Transparency or 1
                             end
                         elseif MiscOptions.BoxType == "Corner" then
-                            -- Corner Box: Fill is Items.Holder background
                             Items.Holder.BackgroundTransparency = MiscOptions["Box Fill"] and MiscOptions["Box Fill 1"].Transparency or 1
                         end
                     else
@@ -1059,9 +1059,9 @@ local function LoadLibrary()
                     if Items.Text then Items.Text.TextColor3 = targetColor end
                     if Items.Distance then Items.Distance.TextColor3 = targetColor end
 
-                    -- CHAMS LOGIC (Animated Only, No Outlines)
+                    -- CHAMS LOGIC
                     if MiscOptions.Chams then
-                        Items.Chams.OutlineTransparency = 1 -- Force invisible
+                        Items.Chams.OutlineTransparency = 1
                         local animStyle = MiscOptions.Chams_Anim_Style
                         local speed = MiscOptions.Chams_Anim_Speed
                         
@@ -1180,9 +1180,9 @@ local function LoadLibrary()
                         if Items.Weapon.Text ~= wName then Items.Weapon.Text = wName end
                     end
 
-                    -- FLAGS LOGIC
+                    -- FLAGS LOGIC (PARENTING FIX)
                     if MiscOptions.Flags_Enabled then
-                        -- Clear current flags
+                        Items.Flags.Parent = Items.Holder -- Fixed: Parent to Holder
                         for _, flag in pairs(Items.Flags:GetChildren()) do flag:Destroy() end
                         Data.Info.Flags = {}
                         
@@ -1190,12 +1190,10 @@ local function LoadLibrary()
                             table.insert(Data.Info.Flags, {Text = text, Color = color})
                         end
 
-                        -- Check Visible Flag
                         if isVisible and MiscOptions.Flags_Visible then
                             AddFlag("VIS", Color3.fromRGB(0, 255, 0))
                         end
 
-                        -- Render Flags
                         for i, flagData in pairs(Data.Info.Flags) do
                             local flag = Esp:Create("TextLabel", {
                                 Parent = Items.Flags,
@@ -1207,11 +1205,13 @@ local function LoadLibrary()
                                 AutomaticSize = Enum.AutomaticSize.XY,
                                 TextSize = 10,
                                 Font = Enum.Font.Code,
-                                BorderSizePixel = 0
+                                BorderSizePixel = 0,
+                                LayoutOrder = i
                             })
                             Esp:Create("UIGradient", {Parent = flag, Rotation = 90, Color = rgbseq{rgbkey(0, flagData.Color), rgbkey(1, rgb(0,0,0))}})
                         end
                     else
+                         Items.Flags.Parent = Esp.Cache
                          Items.Flags:ClearAllChildren()
                     end
                 end
@@ -1250,13 +1250,15 @@ local function LoadLibrary()
                                 Items.BoxGradient.Color.Keypoints[1], 
                                 rgbkey(1, value.Color)
                             }
-                            for _,corner in pairs(Items.Corners:GetChildren()) do 
-                                if corner:IsA("Frame") then
-                                    local grad = corner:FindFirstChildOfClass("UIGradient")
-                                    if grad then grad.Color = Color end
-                                end
-                            end     
-                            Items.BoxGradient.Color = Color
+                            if Items.Corners then
+                                for _,corner in pairs(Items.Corners:GetChildren()) do 
+                                    if corner:IsA("Frame") then
+                                        local grad = corner:FindFirstChildOfClass("UIGradient")
+                                        if grad then grad.Color = Color end
+                                    end
+                                end     
+                            end
+                            if Items.BoxGradient then Items.BoxGradient.Color = Color end
                         end 
                         
                         if key == "Box Gradient 2" then 
@@ -1264,58 +1266,62 @@ local function LoadLibrary()
                                 rgbkey(0, value.Color), 
                                 Items.BoxGradient.Color.Keypoints[2]
                             }
-                            for _,corner in pairs(Items.Corners:GetChildren()) do 
-                                 if corner:IsA("Frame") then
-                                    local grad = corner:FindFirstChildOfClass("UIGradient")
-                                    if grad then grad.Color = Color end
+                            if Items.Corners then
+                                for _,corner in pairs(Items.Corners:GetChildren()) do 
+                                    if corner:IsA("Frame") then
+                                        local grad = corner:FindFirstChildOfClass("UIGradient")
+                                        if grad then grad.Color = Color end
+                                    end
                                 end
                             end
-                            Items.BoxGradient.Color = Color
+                            if Items.BoxGradient then Items.BoxGradient.Color = Color end
                         end 
 
                         if key == "Box Gradient Rotation" then 
-                            Items.BoxGradient.Rotation = value
+                            if Items.BoxGradient then Items.BoxGradient.Rotation = value end
                         end 
 
                         if key == "Box Fill" then 
-                            -- Handled in Update loop mostly
                         end
 
                         if key == "Box Fill 1" then 
-                            local Path = Items.HolderGradient
-                            Path.Transparency = numseq{
-                                numkey(0, 1 - value.Transparency), 
-                                Path.Transparency.Keypoints[2]
-                            };
+                            if Items.HolderGradient then
+                                local Path = Items.HolderGradient
+                                Path.Transparency = numseq{
+                                    numkey(0, 1 - value.Transparency), 
+                                    Path.Transparency.Keypoints[2]
+                                };
 
-                            Path.Color = rgbseq{
-                                rgbkey(0, value.Color), 
-                                Path.Color.Keypoints[2]
-                            }
+                                Path.Color = rgbseq{
+                                    rgbkey(0, value.Color), 
+                                    Path.Color.Keypoints[2]
+                                }
+                            end
                         end 
 
                         if key == "Box Fill 2" then 
-                            local Path = Items.HolderGradient
-                            Path.Transparency = numseq{
-                                Path.Transparency.Keypoints[1],
-                                numkey(1, 1 - value.Transparency)
-                            };
+                            if Items.HolderGradient then
+                                local Path = Items.HolderGradient
+                                Path.Transparency = numseq{
+                                    Path.Transparency.Keypoints[1],
+                                    numkey(1, 1 - value.Transparency)
+                                };
 
-                            Path.Color = rgbseq{
-                                Path.Color.Keypoints[1],
-                                rgbkey(1, value.Color)
-                            };
+                                Path.Color = rgbseq{
+                                    Path.Color.Keypoints[1],
+                                    rgbkey(1, value.Color)
+                                };
+                            end
                         end 
 
                         if key == "Box Fill Rotation" then 
-                            Items.HolderGradient.Rotation = value
+                            if Items.HolderGradient then Items.HolderGradient.Rotation = value end
                         end 
                     -- 
 
                     -- Bars 
                         if key == "Healthbar" then 
                              Items.Healthbar.Parent = value and Items[Items.Healthbar.Name] or Esp.Cache  
-                             -- FIXED: Keep HealthbarText visible if option is on, even if bar is off
                              if not value then
                                 Items.HealthbarText.Parent = MiscOptions.Healthbar_Number and Items[Items.Healthbar.Name] or Esp.Cache
                              else
@@ -1449,7 +1455,6 @@ local function LoadLibrary()
                     end
                     if key == "Skeleton_Thickness" then
                         for _, bone in pairs(Data.Bones) do 
-                            -- Size updated in Update
                         end
                     end
                     if key == "Skeleton_Transparency" then
@@ -1471,7 +1476,7 @@ local function LoadLibrary()
                 end 
                 if Esp.Cache then pcall(function() Esp.Cache:Destroy() end) end
                 if Esp.ScreenGui then pcall(function() Esp.ScreenGui:Destroy() end) end
-                getgenv().KiwiSenseEsp = nil
+                if getgenv then getgenv().KiwiSenseEsp = nil end
             end 
 
             function Esp.RemovePlayer(player)
@@ -1496,6 +1501,7 @@ local function LoadLibrary()
             end 
         end)
 
+        if Esp.Loop then RunService:UnbindFromRenderStep("EspLoop") end
         Esp.Loop = RunService:BindToRenderStep("EspLoop", Enum.RenderPriority.Camera.Value + 1, Esp.Update)
 
         for index,value in pairs(MiscOptions) do 
@@ -1503,7 +1509,7 @@ local function LoadLibrary()
         end
     end
 
-    return getgenv().KiwiSenseEsp
+    return getgenv and getgenv().KiwiSenseEsp
 end
 
 return LoadLibrary()
