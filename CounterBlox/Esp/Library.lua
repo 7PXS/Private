@@ -573,55 +573,50 @@ local function LoadLibrary()
                                 BackgroundColor3 = rgb(255, 255, 255)
                             });
 
-                    -- Corner Boxes
-                        Items.Corners = Esp:Create( "Frame", {
-                            Parent = Esp.Cache; 
-                            Name = "\0";
-                            BackgroundTransparency = 1;
-                            BorderColor3 = rgb(0, 0, 0);
-                            Size = dim2(1, 0, 1, 0);
-                            BorderSizePixel = 0;
-                            BackgroundColor3 = rgb(255, 255, 255)
-                        });
+                    -- Corner Boxes (Fixed: Uses Frames instead of Images for clean L-shapes)
+                    Items.Corners = Esp:Create("Frame", {
+                        Parent = Esp.Cache, 
+                        Name = "\0";
+                        BackgroundTransparency = 1;
+                        BorderColor3 = rgb(0, 0, 0);
+                        Size = dim2(1, 0, 1, 0);
+                        BorderSizePixel = 0;
+                        BackgroundColor3 = rgb(255, 255, 255)
+                    });
 
-                        local function Corner(anch, pos, rot)
-                            local img = Esp:Create("ImageLabel", {
-                                Parent = Items.Corners,
-                                BackgroundTransparency = 1,
-                                AnchorPoint = anch,
-                                Position = pos,
-                                Size = dim2(0.4, 0, 0.25, 0),
-                                Image = "rbxassetid://83548615999411",
-                                ScaleType = Enum.ScaleType.Slice,
-                                SliceCenter = rect(vec2(1,1), vec2(99,2)),
-                                ZIndex = 2
-                            })
-                            Esp:Create("UIGradient", {Rotation = rot or 0, Parent = img})
-                        end
-                        
-                        Corner(vec2(0,0), dim2(0,0,0,2))
-                        Corner(vec2(1,0), dim2(1,0,0,2), -90)
-                        Corner(vec2(0,1), dim2(0,0,1,0), 90)
-                        Corner(vec2(1,1), dim2(1,0,1,0), 180)
+                    local function CreateLine(name, pos, size, anchor)
+                        local f = Esp:Create("Frame", {
+                            Parent = Items.Corners,
+                            Name = name,
+                            BackgroundTransparency = 0,
+                            BorderSizePixel = 0,
+                            Position = pos,
+                            Size = size,
+                            AnchorPoint = anchor,
+                            ZIndex = 2
+                        })
+                        -- Add gradient so color changes work
+                        Esp:Create("UIGradient", {Parent = f, Color = rgbseq{rgbkey(0, rgb(255,255,255)), rgbkey(1, rgb(255,255,255))}})
+                    end
 
-                        local function Line(anch, pos, rot, id)
-                            local img = Esp:Create("ImageLabel", {
-                                Parent = Items.Corners,
-                                BackgroundTransparency = 1,
-                                AnchorPoint = anch,
-                                Position = pos,
-                                Size = dim2(0, 3, 0.25, 0),
-                                Image = "rbxassetid://101715268403902",
-                                ScaleType = Enum.ScaleType.Slice,
-                                SliceCenter = rect(vec2(1,0), vec2(2,96)),
-                                ZIndex = 500
-                            })
-                            if rot then Esp:Create("UIGradient", {Rotation = rot, Parent = img}) end
-                        end
-                        Line(vec2(0,1), dim2(0,0,1,-2), -90)
-                        Line(vec2(1,1), dim2(1,0,1,-2), 90)
-                        Line(vec2(0,0), dim2(0,0,0,2), 90)
-                        Line(vec2(1,0), dim2(1,0,0,2), -90)
+                    -- Corner Size (20% of the box)
+                    local cornerSize = 0.2
+
+                    -- Top Left
+                    CreateLine("TL_H", dim2(0,0,0,0), dim2(cornerSize, 0, 0, 1), Vector2.new(0,0)) -- Horizontal
+                    CreateLine("TL_V", dim2(0,0,0,0), dim2(0, 1, cornerSize, 0), Vector2.new(0,0)) -- Vertical
+
+                    -- Top Right
+                    CreateLine("TR_H", dim2(1,0,0,0), dim2(cornerSize, 0, 0, 1), Vector2.new(1,0))
+                    CreateLine("TR_V", dim2(1,0,0,0), dim2(0, 1, cornerSize, 0), Vector2.new(1,0))
+
+                    -- Bottom Left
+                    CreateLine("BL_H", dim2(0,0,1,0), dim2(cornerSize, 0, 0, 1), Vector2.new(0,1))
+                    CreateLine("BL_V", dim2(0,0,1,0), dim2(0, 1, cornerSize, 0), Vector2.new(0,1))
+
+                    -- Bottom Right
+                    CreateLine("BR_H", dim2(1,0,1,0), dim2(cornerSize, 0, 0, 1), Vector2.new(1,1))
+                    CreateLine("BR_V", dim2(1,0,1,0), dim2(0, 1, cornerSize, 0), Vector2.new(1,1))
 
                     -- Normal Box 
                         Items.Box = Esp:Create( "Frame" , {
