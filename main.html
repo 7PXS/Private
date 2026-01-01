@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Skids</title>
+    <style>
+        /* 
+           DESIGN TOKENS & RESET 
+           Based on Beminee/Brutalist style 
+        */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --accent-color: #000000;
+            --border-width: 1px;
+            --font-main: 'Courier New', Courier, monospace; /* Essential for this style */
+            --spacing-unit: 1.5rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            font-size: 16px;
+            line-height: 1.4;
+            overflow-x: hidden;
+        }
+
+        /* TYPOGRAPHY */
+        h1, h2, h3, h4, p, a, li {
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        /* UTILITIES */
+        .border-top { border-top: var(--border-width) solid var(--accent-color); }
+        .border-bottom { border-bottom: var(--border-width) solid var(--accent-color); }
+        .border-right { border-right: var(--border-width) solid var(--accent-color); }
+        .border-left { border-left: var(--border-width) solid var(--accent-color); }
+        
+        .flex { display: flex; }
+        .flex-between { justify-content: space-between; }
+        .flex-center { align-items: center; justify-content: center; }
+        .flex-col { flex-direction: column; }
+
+        .grid { display: grid; }
+
+        /* NAVIGATION */
+        nav {
+            height: 80px;
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            background: var(--bg-color);
+            z-index: 100;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .menu-btn {
+            border: 1px solid var(--accent-color);
+            padding: 0.5rem 1.5rem;
+            font-weight: bold;
+        }
+
+        .menu-btn:hover {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            border-color: var(--accent-color);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 15vw, 12rem);
+            line-height: 0.85;
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .hero-title span {
+            display: block;
+        }
+
+        .hero-sub {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin-top: 1rem;
+        }
+
+        /* MARQUEE / SCROLLING TEXT */
+        .marquee-container {
+            border-top: var(--border-width) solid var(--accent-color);
+            border-bottom: var(--border-width) solid var(--accent-color);
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 1.5rem 0;
+            background: var(--bg-color);
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: scroll 20s linear infinite;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* GRID CONTENT SECTION */
+        .content-grid {
+            grid-template-columns: repeat(3, 1fr);
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .grid-item {
+            aspect-ratio: 1 / 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-item:hover {
+            background: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .grid-item h3 {
+            font-size: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .grid-item p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            position: relative;
+            z-index: 2;
+        }
+
+        .grid-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.1; /* Subtle background texture */
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1;
+            filter: grayscale(100%);
+        }
+
+        .grid-item:hover img {
+            opacity: 0.2;
+            transform: scale(1.05);
+        }
+
+        /* FOOTER */
+        footer {
+            padding: 4rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-col h4 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            text-decoration: underline;
+        }
+
+        .footer-links li {
+            list-style: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a:hover {
+            background: black;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav class="flex flex-between flex-center border-bottom">
+        <div style="font-weight: bold; font-size: 1.2rem;">SKIDS_OS_V1.0</div>
+        <div class="flex" style="gap: 1rem;">
+            <a href="#" class="nav-link">INDEX</a>
+            <a href="#" class="nav-link">INFO</a>
+            <a href="#" class="menu-btn">MENU</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero border-bottom">
+        <div class="hero-title">
+            <span>WELCOME</span>
+            <span>SKIDS</span>
+        </div>
+        <p class="hero-sub">
+            SYSTEM ACCESS GRANTED. // MINIMALIST BRUTALIST INTERFACE LOADED. // PLEASE PROCEED TO THE GRID SECTION FOR DATA.
+        </p>
+    </header>
+
+    <!-- MARQUEE -->
+    <section class="marquee-container">
+        <div class="marquee-content">
+            WELCOME SKIDS &nbsp;///&nbsp; INITIALIZING PROTOCOL &nbsp;///&nbsp; DO NOT PANIC &nbsp;///&nbsp; SYSTEM ONLINE &nbsp;///&nbsp; WELCOME SKIDS &nbsp;///&nbsp; INITIALIZING PROTOCOL &nbsp;///&nbsp; DO NOT PANIC &nbsp;///&nbsp; SYSTEM ONLINE &nbsp;///
+        </div>
+    </section>
+
+    <!-- 3-COLUMN GRID SHOWCASE -->
+    <main>
+        <section class="grid content-grid border-bottom">
+            <!-- Item 1 -->
+            <article class="grid-item border-right border-bottom">
+                <img src="https://picsum.photos/seed/tech1/600/600" alt="Abstract texture">
+                <h3>01. ENTRY</h3>
+                <p>Primary access point verified.</p>
+            </article>
+
+            <!-- Item 2 -->
+            <article class="grid-item border-right border-bottom">
+                <img src="https://picsum.photos/seed/tech2/600/600" alt="Abstract texture">
+                <h3>02. DATA</h3>
+                <p>Secure connection established.</p>
+            </article>
+
+            <!-- Item 3 -->
+            <article class="grid-item border-bottom">
+                <img src="https://picsum.photos/seed/tech3/600/600" alt="Abstract texture">
+                <h3>03. LOGS</h3>
+                <p>Recording user interaction.</p>
+            </article>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-col">
+            <h4>STATUS: ONLINE</h4>
+            <p>© 2023 SKIDS INC.</p>
+            <p>ALL RIGHTS RESERVED.</p>
+        </div>
+        <div class="footer-col">
+            <ul class="footer-links">
+                <li><a href="#">-> TWITTER</a></li>
+                <li><a href="#">-> GITHUB</a></li>
+                <li><a href="#">-> DISCORD</a></li>
+            </ul>
+        </div>
+    </footer>
+
+</body>
+</html>
