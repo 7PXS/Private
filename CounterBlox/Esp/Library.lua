@@ -1201,7 +1201,53 @@ local function LoadLibrary()
                                     if onScreen1 and onScreen2 then
                                         local frame = Data.Bones[boneIdx]
                                         frame.Visible = true
-                                        frame.Position = UDim2.fromOffset((p1Pos.X + p2Pos.X)/2, (p1Pos.Y + p
+                                        frame.Position = UDim2.fromOffset((p1Pos.X + p2Pos.X)/2, (p1Pos.Y + p2Pos.Y)/2)
+                                        local dist = math.sqrt((p2Pos.X - p1Pos.X)^2 + (p2Pos.Y - p1Pos.Y)^2)
+                                        frame.Size = UDim2.fromOffset(dist, MiscOptions.Skeleton_Thickness)
+                                        frame.Rotation = math.deg(math.atan2(p2Pos.Y - p1Pos.Y, p2Pos.X - p1Pos.X))
+                                        
+                                        frame.BackgroundColor3 = skeletonColor
+                                        local stroke = frame:FindFirstChildOfClass("UIStroke")
+                                        if stroke then stroke.Color = Color3.new(0,0,0) end
+                                    else
+                                        Data.Bones[boneIdx].Visible = false
+                                    end
+                                else
+                                    UpdateBone(Data.Bones[boneIdx], pair[1], pair[2], skeletonColor)
+                                end
+                                boneIdx = boneIdx + 1
+                            end
+                        end
+                        
+                        for i = boneIdx, #Data.Bones do
+                            Data.Bones[i].Visible = false
+                        end
+                    else
+                        for _, bone in pairs(Data.Bones) do bone.Visible = false end
+                    end
+
+                    -- Update Text
+                    local Text = tostring( math.round(Distance) )  .. "m"
+                    if Items.Distance.Text ~= Text then Items.Distance.Text = Text end 
+
+                    if MiscOptions.Weapon_Text then
+                        local wName = Esp.Overrides.GetWeapon(Character, player)
+                        if Items.Weapon.Text ~= wName then Items.Weapon.Text = wName end
+                    end
+
+                    -- ARMOR BAR
+                    if MiscOptions.ArmorBar then
+                        local armor, maxArmor = Esp.Overrides.GetArmor(Character, player)
+                        local percent = math.clamp(armor / maxArmor, 0, 1)
+                        
+                        Items.ArmorBarAccent.Size = dim2(percent, 0, 1, 0)
+                        Items.ArmorBarAccent.BackgroundColor3 = rgb(50, 150, 255) 
+                        Items.ArmorBar.Visible = true
+                    else
+                        Items.ArmorBar.Visible = false
+                    end
+                end
+            end 
             
             function Esp.RefreshElements(key, value)
                 for _,Data in pairs(Esp.Players) do
