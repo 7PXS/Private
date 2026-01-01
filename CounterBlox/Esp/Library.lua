@@ -1,12 +1,14 @@
 --[[
-    KiwiSense ESP Library
+    KiwiSense ESP Library v2
     Theme: Preset (Purple/Dark Grey)
     
     Updates:
-        - Cleanup: Fixed memory leaks in Skeleton Bones and Chams.
-        - Skeleton: Added Black UIStroke outline to bones.
-        - Skeleton Color: White (Default) -> Red (Visible). Outline always Black.
-        - Visibility Check: Added Accessories and custom Workspace objects (Gun, Head, FakeHead).
+        - Fixed Box Fill for both Corner and Normal boxes.
+        - Added UIStroke to Corner Boxes for consistent styling.
+        - Overhauled Chams: Always animated, no outlines, multiple styles.
+        - Fixed Health Text showing "Label".
+        - Added Flags System (Currently supports 'Visible' flag).
+        - Added Toggle for Visibility Check colors.
 ]]
 
 local function LoadLibrary()
@@ -16,8 +18,8 @@ local function LoadLibrary()
     local TweenService = game:GetService("TweenService")
     local Workspace = game:GetService("Workspace")
     local CoreGui = game:GetService("CoreGui")
+    local Lighting = game:GetService("Lighting")
 
-    -- Safe service getters
     local function get_hui()
         return gethui and gethui() or CoreGui
     end
@@ -26,7 +28,6 @@ local function LoadLibrary()
         return cloneref and cloneref(instance) or instance
     end
 
-    -- Unload existing instance to prevent conflicts
     if getgenv().KiwiSenseEsp then 
         local OldEsp = getgenv().KiwiSenseEsp
         if type(OldEsp.Unload) == "function" then
@@ -37,7 +38,6 @@ local function LoadLibrary()
 
     local ESPFonts = {}
 
-    -- Theme
     local Theme = {
         Accent = Color3.fromRGB(170, 110, 255),
         Background = Color3.fromRGB(15, 15, 20),
@@ -53,7 +53,7 @@ local function LoadLibrary()
 
         -- Boxes
         ["Boxes"] = false;
-        ["BoxType"] = "Box";
+        ["BoxType"] = "Corner"; -- Default to Corner since we fixed it
         
         ["Box Gradient 1"] = { Color = Theme.Accent, Transparency = 0.8 }; 
         ["Box Gradient 2"] = { Color = Theme.Accent, Transparency = 0.8 };
@@ -65,7 +65,7 @@ local function LoadLibrary()
         ["Box Fill Rotation"] = 0;
 
         -- Healthbar
-        ["Healthbar"] = false;
+        ["Healthbar"] = true;
         ["Healthbar_Position"] = "Left";
         ["Healthbar_Number"] = false;
         ["Healthbar_Low"] = { Color = Color3.fromRGB(255, 0, 0), Transparency = 1};
@@ -82,7 +82,7 @@ local function LoadLibrary()
 
         -- Armor Bar
         ["ArmorBar"] = false;
-        ["ArmorBar_Color"] = { Color = Color3.fromRGB(50, 150, 255), Transparency = 1 }; -- Fixed Blue
+        ["ArmorBar_Color"] = { Color = Color3.fromRGB(50, 150, 255), Transparency = 1 };
         ["ArmorBar_Background"] = { Color = Color3.fromRGB(0, 0, 0), Transparency = 0.5 };
 
         -- Text Elements
@@ -98,27 +98,31 @@ local function LoadLibrary()
         ["Distance_Text_Font"] = "Verdana";
         ["Distance_Text_Size"] = 11;
 
-        -- Weapon Text
         ["Weapon_Text"] = false; 
         ["Weapon_Text_Color"] = { Color = Theme.Text };
         ["Weapon_Text_Position"] = "Bottom";
         ["Weapon_Text_Font"] = "Verdana";
         ["Weapon_Text_Size"] = 11;
 
-        -- NEW: Skeleton Options
+        -- NEW: Visibility Check Toggle
+        ["VisCheck_Colors"] = true;
+
+        -- Skeleton Options
         ["Skeleton"] = false;
         ["Skeleton_Thickness"] = 1.5;
-        ["Skeleton_Color"] = { Color = Color3.new(1,1,1), Transparency = 0 }; -- White Default
+        ["Skeleton_Color"] = { Color = Color3.new(1,1,1), Transparency = 0 };
         ["Skeleton_Transparency"] = 0;
 
-        -- NEW: Chams Options (Reference Style)
+        -- CHAMS (Updated)
         ["Chams"] = false;
         ["Chams_Fill_Color"] = { Color = Theme.Accent, Transparency = 0.5 };
-        ["Chams_Outline_Color"] = { Color = Theme.Accent, Transparency = 0 };
         ["Chams_Depth_Mode"] = Enum.HighlightDepthMode.AlwaysOnTop;
-        ["Chams_Animated"] = false; 
-        ["Chams_Anim_Style"] = "Linear"; 
+        ["Chams_Anim_Style"] = "Rainbow"; -- Options: "Rainbow", "Breathe", "Pulse"
         ["Chams_Anim_Speed"] = 2,
+        
+        -- FLAGS
+        ["Flags_Enabled"] = true;
+        ["Flags_Visible"] = true;
     }
 
     Options = setmetatable({}, {
@@ -219,7 +223,6 @@ local function LoadLibrary()
             Overrides = {} 
         }
         
-        -- Assign to global for internal metatable access
         getgenv().KiwiSenseEsp = Esp
 
         -- Overrides
@@ -238,7 +241,6 @@ local function LoadLibrary()
             return "Fists"
         end
 
-        -- ARMOR BAR FIX
         Esp.Overrides.GetArmor = function(model, player)
             if player then
                 local kevlar = player:FindFirstChild("Kevlar")
@@ -293,7 +295,7 @@ local function LoadLibrary()
                 if not torso then return nil, nil, nil end 
                 local ViewportTop = torso.Position + (torso.CFrame.UpVector * 1.8) + camera.CFrame.UpVector
                 local ViewportBottom = torso.Position - (torso.CFrame.UpVector * 2.5) - camera.CFrame.UpVector
-                local Distance = (torso.Position - camera.CFrame.p).Magnitude
+                local Distance = (torso.Position - camera.CFrame.p).Magnitude / 3.5714285714
                 local NewDistance = math.floor(Distance * 0.333)
                 local Top, TopIsRendered = Esp:ConvertScreenPoint(ViewportTop)
                 local Bottom, BottomIsRendered = Esp:ConvertScreenPoint(ViewportBottom)
@@ -315,16 +317,14 @@ local function LoadLibrary()
                 return tween
             end
 
-            -- Skeleton Helper: Create a line frame with Outline (UIStroke)
             function Esp:CreateBone(parent)
                 local f = Instance.new("Frame")
                 f.BorderSizePixel = 0
-                f.BackgroundColor3 = Color3.new(1,1,1) -- White default
+                f.BackgroundColor3 = Color3.new(1,1,1)
                 f.BackgroundTransparency = 0
                 f.ZIndex = 1
                 f.AnchorPoint = Vector2.new(0.5, 0.5)
                 
-                -- ADD BLACK OUTLINE
                 local stroke = Instance.new("UIStroke")
                 stroke.Color = Color3.new(0,0,0)
                 stroke.Thickness = 1
@@ -343,7 +343,8 @@ local function LoadLibrary()
                         Health = 0; 
                         Player = player;
                         OldHealth = 0;
-                        TeamColor = player.TeamColor.Color
+                        TeamColor = player.TeamColor.Color;
+                        Flags = {}; -- Custom flags table
                     },
                     Drawings = { }, 
                     Type = typechar or "player",
@@ -370,7 +371,7 @@ local function LoadLibrary()
                             Name = "\0";
                             Color = rgbseq{rgbkey(0, rgb(255, 255, 255)), rgbkey(1, rgb(255, 255, 255))};
                             Parent = Items.Holder;
-                            Enabled = true
+                            Enabled = false
                         });
 
                         -- Directions 
@@ -383,19 +384,6 @@ local function LoadLibrary()
                                 BorderColor3 = rgb(0, 0, 0);
                                 ZIndex = 2;
                                 BorderSizePixel = 0;
-                                BackgroundColor3 = rgb(255, 255, 255)
-                            });
-
-                            Items.HealthbarTextsLeft = Esp:Create( "Frame", {
-                                Visible = true;
-                                BorderColor3 = rgb(0, 0, 0);
-                                Parent = Esp.Cache;
-                                Name = "\0";
-                                BackgroundTransparency = 1;
-                                LayoutOrder = -100;
-                                BorderSizePixel = 0;
-                                ZIndex = 0;
-                                AutomaticSize = Enum.AutomaticSize.X;
                                 BackgroundColor3 = rgb(255, 255, 255)
                             });
 
@@ -445,28 +433,6 @@ local function LoadLibrary()
                                 Parent = Items.Bottom;
                                 Padding = dim(0, 1)
                             });
-
-                            -- ARMOR BAR
-                            Items.ArmorBar = Esp:Create("Frame", {
-                                Parent = Items.Bottom, 
-                                Name = "ArmorBar", 
-                                BackgroundTransparency = 0, 
-                                BackgroundColor3 = rgb(0,0,0),
-                                Size = dim2(1, 0, 0, 4), 
-                                BorderSizePixel = 0, 
-                                ZIndex = 1,
-                                LayoutOrder = 0
-                            })
-                            Items.ArmorBarAccent = Esp:Create("Frame", {
-                                Parent = Items.ArmorBar, 
-                                Name = "Accent", 
-                                BackgroundTransparency = 0, 
-                                BackgroundColor3 = rgb(50, 150, 255), -- Fixed Blue
-                                Size = dim2(0, 0, 1, 0), 
-                                BorderSizePixel = 0, 
-                                ZIndex = 2
-                            })
-                            Esp:Create("UIStroke", { Parent = Items.ArmorBar, Thickness = 1, Color = rgb(0,0,0) })
 
                             Items.BottomTexts = Esp:Create( "Frame", {
                                 LayoutOrder = 1, 
@@ -559,70 +525,57 @@ local function LoadLibrary()
                                 Padding = dim(0, 1);
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
+                        
+                    -- Corner Boxes (Fixed Styling)
+                        Items.Corners = Esp:Create( "Frame", {
+                            Parent = Esp.Cache; 
+                            Name = "\0";
+                            BackgroundTransparency = 1;
+                            BorderColor3 = rgb(0, 0, 0);
+                            Size = dim2(1, 0, 1, 0);
+                            BorderSizePixel = 0;
+                            BackgroundColor3 = rgb(255, 255, 255)
+                        });
 
-                            Items.HealthbarTextsRight = Esp:Create( "Frame", {
-                                Visible = true;
-                                BorderColor3 = rgb(0, 0, 0);
-                                Parent = Esp.Cache;
-                                Name = "\0";
-                                BackgroundTransparency = 1;
-                                LayoutOrder = 99;
-                                BorderSizePixel = 0;
-                                ZIndex = 0;
-                                AutomaticSize = Enum.AutomaticSize.X;
-                                BackgroundColor3 = rgb(255, 255, 255)
-                            });
+                        local function CreateCornerLine(name, pos, size, anchor)
+                            local f = Esp:Create("Frame", {
+                                Parent = Items.Corners,
+                                Name = name,
+                                BackgroundTransparency = 0,
+                                BorderSizePixel = 0,
+                                Position = pos,
+                                Size = size,
+                                AnchorPoint = anchor,
+                                ZIndex = 2
+                            })
+                            -- Black Outline Styling
+                            local stroke = Instance.new("UIStroke")
+                            stroke.Color = Color3.new(0,0,0)
+                            stroke.Thickness = 1
+                            stroke.Parent = f
 
-                    -- Corner Boxes (Fixed: Uses Frames instead of Images for clean L-shapes)
-                    Items.Corners = Esp:Create("Frame", {
-                        Parent = Esp.Cache, 
-                        Name = "\0";
-                        BackgroundTransparency = 1;
-                        BorderColor3 = rgb(0, 0, 0);
-                        Size = dim2(1, 0, 1, 0);
-                        BorderSizePixel = 0;
-                        BackgroundColor3 = rgb(255, 255, 255)
-                    });
+                            Esp:Create("UIGradient", {Parent = f, Color = rgbseq{rgbkey(0, rgb(255,255,255)), rgbkey(1, rgb(255,255,255))}})
+                        end
 
-                    local function CreateLine(name, pos, size, anchor)
-                        local f = Esp:Create("Frame", {
-                            Parent = Items.Corners,
-                            Name = name,
-                            BackgroundTransparency = 0,
-                            BorderSizePixel = 0,
-                            Position = pos,
-                            Size = size,
-                            AnchorPoint = anchor,
-                            ZIndex = 2
-                        })
-                        -- Add gradient so color changes work
-                        Esp:Create("UIGradient", {Parent = f, Color = rgbseq{rgbkey(0, rgb(255,255,255)), rgbkey(1, rgb(255,255,255))}})
-                    end
-
-                    -- Corner Size (20% of the box)
-                    local cornerSize = 0.2
-
-                    -- Top Left
-                    CreateLine("TL_H", dim2(0,0,0,0), dim2(cornerSize, 0, 0, 1), Vector2.new(0,0)) -- Horizontal
-                    CreateLine("TL_V", dim2(0,0,0,0), dim2(0, 1, cornerSize, 0), Vector2.new(0,0)) -- Vertical
-
-                    -- Top Right
-                    CreateLine("TR_H", dim2(1,0,0,0), dim2(cornerSize, 0, 0, 1), Vector2.new(1,0))
-                    CreateLine("TR_V", dim2(1,0,0,0), dim2(0, 1, cornerSize, 0), Vector2.new(1,0))
-
-                    -- Bottom Left
-                    CreateLine("BL_H", dim2(0,0,1,0), dim2(cornerSize, 0, 0, 1), Vector2.new(0,1))
-                    CreateLine("BL_V", dim2(0,0,1,0), dim2(0, 1, cornerSize, 0), Vector2.new(0,1))
-
-                    -- Bottom Right
-                    CreateLine("BR_H", dim2(1,0,1,0), dim2(cornerSize, 0, 0, 1), Vector2.new(1,1))
-                    CreateLine("BR_V", dim2(1,0,1,0), dim2(0, 1, cornerSize, 0), Vector2.new(1,1))
+                        local cornerSize = 0.2
+                        -- Top Left
+                        CreateCornerLine("TL_H", dim2(0,0,0,0), dim2(cornerSize, 0, 0, 1), Vector2.new(0,0)) 
+                        CreateCornerLine("TL_V", dim2(0,0,0,0), dim2(0, 1, cornerSize, 0), Vector2.new(0,0)) 
+                        -- Top Right
+                        CreateCornerLine("TR_H", dim2(1,0,0,0), dim2(cornerSize, 0, 0, 1), Vector2.new(1,0))
+                        CreateCornerLine("TR_V", dim2(1,0,0,0), dim2(0, 1, cornerSize, 0), Vector2.new(1,0))
+                        -- Bottom Left
+                        CreateCornerLine("BL_H", dim2(0,0,1,0), dim2(cornerSize, 0, 0, 1), Vector2.new(0,1))
+                        CreateCornerLine("BL_V", dim2(0,0,1,0), dim2(0, 1, cornerSize, 0), Vector2.new(0,1))
+                        -- Bottom Right
+                        CreateCornerLine("BR_H", dim2(1,0,1,0), dim2(cornerSize, 0, 0, 1), Vector2.new(1,1))
+                        CreateCornerLine("BR_V", dim2(1,0,1,0), dim2(0, 1, cornerSize, 0), Vector2.new(1,1))
 
                     -- Normal Box 
                         Items.Box = Esp:Create( "Frame" , {
                             Parent = Esp.Cache; 
                             Name = "\0";
-                            BackgroundTransparency = 0.8500000238418579;
+                            BackgroundTransparency = 1; -- Default off
                             Position = dim2(0, 1, 0, 1);
                             BorderColor3 = rgb(0, 0, 0);
                             Size = dim2(1, -2, 1, -2);
@@ -656,23 +609,6 @@ local function LoadLibrary()
                             Parent = Items.UIStroke
                         });
 
-                        Items.Inner2 = Esp:Create( "Frame" , {
-                            Parent = Items.Inner;
-                            Name = "\0";
-                            BackgroundTransparency = 1;
-                            Position = dim2(0, 1, 0, 1);
-                            BorderColor3 = rgb(0, 0, 0);
-                            Size = dim2(1, -2, 1, -2);
-                            BorderSizePixel = 0;
-                            BackgroundColor3 = rgb(255, 255, 255)
-                        });
-
-                        Esp:Create( "UIStroke" , {
-                            Parent = Items.Inner2;
-                            LineJoinMode = Enum.LineJoinMode.Miter
-                        });
-                    -- 
-                    
                     -- Healthbar
                         Items.Healthbar = Esp:Create( "Frame" , {
                             Name = "Left";
@@ -711,7 +647,8 @@ local function LoadLibrary()
                             BorderSizePixel = 0;
                             AutomaticSize = Enum.AutomaticSize.XY;
                             TextSize = 12;
-                            BackgroundColor3 = rgb(255, 255, 255)
+                            BackgroundColor3 = rgb(255, 255, 255);
+                            Text = "" -- FIXED: Initialize empty
                         });
 
                         Esp:Create( "UIStroke", {
@@ -719,7 +656,7 @@ local function LoadLibrary()
                             LineJoinMode = Enum.LineJoinMode.Miter
                         });
                     -- 
-
+                    
                     -- Texts
                         Items.Text = Esp:Create( "TextLabel", {
                             FontFace = Fonts.ProggyClean or Font.fromEnum(Enum.Font.SourceSans);
@@ -781,19 +718,34 @@ local function LoadLibrary()
                             Parent = Items.Distance;
                             LineJoinMode = Enum.LineJoinMode.Miter
                         });
+
+                    -- FLAGS
+                        Items.Flags = Esp:Create("Frame", {
+                            Parent = Esp.Cache,
+                            Name = "Flags",
+                            BackgroundTransparency = 1,
+                            Size = dim2(0, 0, 0, 0),
+                            AutomaticSize = Enum.AutomaticSize.XY,
+                            BorderSizePixel = 0
+                        })
+                        
+                        Esp:Create("UIListLayout", {
+                            Parent = Items.Flags,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            Padding = dim(0, 2)
+                        })
                     -- 
-                    
-                    -- NEW: Chams Instance
+
+                    -- Chams
                     Items.Chams = Instance.new("Highlight")
                     Items.Chams.Name = "KiwiChams"
                     Items.Chams.Enabled = false
                     Items.Chams.DepthMode = MiscOptions.Chams_Depth_Mode
                     Items.Chams.FillColor = MiscOptions.Chams_Fill_Color.Color
                     Items.Chams.FillTransparency = MiscOptions.Chams_Fill_Color.Transparency
-                    Items.Chams.OutlineColor = MiscOptions.Chams_Outline_Color.Color
-                    Items.Chams.OutlineTransparency = MiscOptions.Chams_Outline_Color.Transparency
+                    Items.Chams.OutlineColor = Color3.new(0,0,0) -- Invisible default
+                    Items.Chams.OutlineTransparency = 1 -- Always invisible
                     
-                    -- NEW: Skeleton Bones (Pool of 15 for R15 complexity)
                     for i = 1, 15 do
                         table.insert(Data.Bones, Esp:CreateBone(Esp.ScreenGui))
                     end
@@ -829,11 +781,11 @@ local function LoadLibrary()
                         
                         Esp:Tween(Items.HealthbarText, {Position = dim2(0, 0, isHorizontal and 0 or 1 - Multiplier, 0), TextColor3 = Color_2}, TweenInfo.new(TweenSpeed, Enum.EasingStyle[MiscOptions.Healthbar_EasingStyle], Enum.EasingDirection[MiscOptions.Healthbar_EasingDirection], 0, false, 0))
                         
-                        task.spawn(function() Items.HealthbarText.Text = math.floor(Value) end)
+                        task.spawn(function() Items.HealthbarText.Text = tostring(math.floor(Value)) end)
                     else 
                         Items.HealthbarAccent.Size = dim2(isHorizontal and Multiplier or 1, -2, isHorizontal and 1 or Multiplier, -2)
                         Items.HealthbarAccent.Position = dim2(0, 1, isHorizontal and 0 or 1 - Multiplier, 1)
-                        Items.HealthbarText.Text = math.floor(Value)
+                        Items.HealthbarText.Text = tostring(math.floor(Value))
                         Items.HealthbarText.Position = dim2(0, 0, isHorizontal and 0 or 1 - Multiplier, 0)
                         Items.HealthbarText.TextColor3 = Color_2
                     end 
@@ -852,7 +804,6 @@ local function LoadLibrary()
                     Data.Info.TeamColor = player.TeamColor.Color
                     Data.RigType = Humanoid.RigType
 
-                    -- Parent Chams
                     if Items.Chams then
                         Items.Chams.Parent = Character
                     end
@@ -864,27 +815,19 @@ local function LoadLibrary()
                     Data.HealthChanged(Data.Info.Humanoid.Health)
                 end 
 
-                -- ROBUST CLEANUP
                 Data.Destroy = function()
-                    -- Remove Holder (removes all UI children safely)
                     if Items["Holder"] then 
                         Items["Holder"]:Destroy()
                     end 
-                    
-                    -- Remove Chams
                     if Items["Chams"] and Items["Chams"].Parent then
                         Items["Chams"]:Destroy()
                     end
-                    
-                    -- Remove Bones (Specific manual cleanup required)
                     for i, bone in pairs(Data.Bones) do
                         if bone then
                             bone:Destroy()
                             Data.Bones[i] = nil
                         end
                     end
-                    
-                    -- Remove from Registry
                     if Esp.Players[player.Name] then 
                         Esp.Players[player.Name] = nil
                     end 
@@ -893,7 +836,6 @@ local function LoadLibrary()
                 task.spawn(Data.RefreshDescendants)
                 Esp:Connection(player.CharacterAdded, Data.RefreshDescendants)
                 
-                -- UI Parenting logic
                 for _,ItemParentor in pairs({Items.Left, Items.Right, Items.Top, Items.Bottom}) do  
                     Esp:Connection(ItemParentor.ChildAdded, function()
                         task.wait(.1)
@@ -933,13 +875,8 @@ local function LoadLibrary()
 
             -- Helper to update Skeleton Bone Frames
             local function UpdateBone(frame, part1, part2, targetColor)
-                -- FIX GHOSTING: Temporarily set visibility to false to force a clean re-render.
-                -- This often solves ghosting artifacts in some execution environments.
                 frame.Visible = false 
-
-                if not part1 or not part2 or not part1.Parent or not part2.Parent then
-                    return
-                end
+                if not part1 or not part2 or not part1.Parent or not part2.Parent then return end
                 
                 local p1Pos, onScreen1 = camera:WorldToViewportPoint(part1.Position)
                 local p2Pos, onScreen2 = camera:WorldToViewportPoint(part2.Position)
@@ -950,19 +887,13 @@ local function LoadLibrary()
                     frame.Size = UDim2.fromOffset(dist, MiscOptions.Skeleton_Thickness)
                     frame.Rotation = math.deg(math.atan2(p2Pos.Y - p1Pos.Y, p2Pos.X - p1Pos.X))
                     
-                    -- Apply Colors
                     frame.BackgroundColor3 = targetColor
                     frame.BackgroundTransparency = MiscOptions.Skeleton_Transparency
                     
-                    -- Stroke Color
                     local stroke = frame:FindFirstChildOfClass("UIStroke")
-                    if stroke then
-                        stroke.Color = Color3.new(0,0,0) -- Always Black Outline
-                    end
+                    if stroke then stroke.Color = Color3.new(0,0,0) end
 
-                    -- Make visible only after all properties are set
                     frame.Visible = true 
-                -- If off-screen, it remains false from the start of the function
                 end
             end
 
@@ -994,7 +925,6 @@ local function LoadLibrary()
 
                     if not Items or not Items.Holder then continue end
 
-                    -- CLEANUP
                     if not Character or not Humanoid or not RootPart or Humanoid.Health <= 0 then
                         Items.Holder.Visible = false
                         Items.Chams.Enabled = false
@@ -1002,7 +932,6 @@ local function LoadLibrary()
                         continue
                     end
 
-                    -- TEAM CHECK
                     if MiscOptions.TeamCheck and Esp.Overrides.IsTeammate(player) then
                          Items.Holder.Visible = false
                          Items.Chams.Enabled = false
@@ -1019,27 +948,26 @@ local function LoadLibrary()
                         continue
                     end
 
-                    -- Toggle Visibility Fixes
                     if Holder.Visible ~= true then Holder.Visible = true end 
                     
-                    -- Box Type Logic
+                    -- BOX & FILL LOGIC FIX
                     if Items.Box then Items.Box.Visible = MiscOptions.Boxes and MiscOptions.BoxType == "Box" end
                     if Items.Corners then Items.Corners.Visible = MiscOptions.Boxes and MiscOptions.BoxType == "Corner" end
                     
-                    -- [FIXED] Box Fill Logic
-                    -- 1. If Box Fill is OFF, ensure main container is transparent
-                    if not MiscOptions["Box Fill"] then
-                        Items.Holder.BackgroundTransparency = 1
-                        -- 2. If Box Type is standard "Box", also make the inner box background transparent
-                        if Items.Box and MiscOptions.BoxType == "Box" then
-                            Items.Box.BackgroundTransparency = 1
+                    -- Box Fill Fix
+                    if MiscOptions.Boxes then
+                        if MiscOptions.BoxType == "Box" then
+                            -- Normal Box: Fill is Items.Box background
+                            if Items.Box then
+                                Items.Box.BackgroundTransparency = MiscOptions["Box Fill"] and MiscOptions["Box Fill 1"].Transparency or 1
+                            end
+                        elseif MiscOptions.BoxType == "Corner" then
+                            -- Corner Box: Fill is Items.Holder background
+                            Items.Holder.BackgroundTransparency = MiscOptions["Box Fill"] and MiscOptions["Box Fill 1"].Transparency or 1
                         end
                     else
-                        -- If Box Fill is ON, RefreshElements handles the transparency value for Holder.
-                        -- But we must ensure the inner Box background is transparent so it doesn't conflict/overlay weirdly,
-                        -- or set it to what RefreshElements intends.
-                        -- The Box itself (Items.Box) usually acts as the border. 
-                        -- We leave Items.Box.BackgroundTransparency alone here so RefreshElements controls it.
+                        Items.Holder.BackgroundTransparency = 1
+                        if Items.Box then Items.Box.BackgroundTransparency = 1 end
                     end
 
                     if Items.Chams.Enabled ~= MiscOptions.Chams then Items.Chams.Enabled = MiscOptions.Chams end
@@ -1113,14 +1041,13 @@ local function LoadLibrary()
                         end
                     end
 
-                    local targetColor = isVisible and Color3.fromRGB(255, 0, 0) or (player.TeamColor.Color or Color3.new(1,1,1))
-                    local skeletonColor = isVisible and Color3.new(1,0,0) or Color3.new(1,1,1)
+                    -- COLORS
+                    local targetColor = (isVisible and MiscOptions.VisCheck_Colors) and Color3.fromRGB(255, 0, 0) or (player.TeamColor.Color or Color3.new(1,1,1))
+                    local skeletonColor = (isVisible and MiscOptions.VisCheck_Colors) and Color3.new(1,0,0) or Color3.new(1,1,1)
 
-                    -- Color Updates (Box, Text, Distance)
                     if Items.BoxGradient then
                         Items.BoxGradient.Color = rgbseq{rgbkey(0, targetColor), rgbkey(1, targetColor)}
                     end
-                    -- Update Corner Colors
                     if Items.Corners then
                         for _, corner in pairs(Items.Corners:GetChildren()) do
                             if corner:IsA("Frame") then
@@ -1129,22 +1056,30 @@ local function LoadLibrary()
                             end
                         end
                     end
-
                     if Items.Text then Items.Text.TextColor3 = targetColor end
                     if Items.Distance then Items.Distance.TextColor3 = targetColor end
 
-                    -- CHAMS LOGIC
+                    -- CHAMS LOGIC (Animated Only, No Outlines)
                     if MiscOptions.Chams then
-                        Items.Chams.FillColor = MiscOptions.Chams_Fill_Color.Color
-                        Items.Chams.OutlineColor = MiscOptions.Chams_Outline_Color.Color
-
-                        if MiscOptions.Chams_Animated then
-                            local breathe_effect = math.atan(math.sin(tick() * 2)) * 2 / math.pi
-                            Items.Chams.FillTransparency = MiscOptions.Chams_Fill_Color.Transparency * breathe_effect * 0.01
-                            Items.Chams.OutlineTransparency = MiscOptions.Chams_Outline_Color.Transparency * breathe_effect * 0.01
-                        else
+                        Items.Chams.OutlineTransparency = 1 -- Force invisible
+                        local animStyle = MiscOptions.Chams_Anim_Style
+                        local speed = MiscOptions.Chams_Anim_Speed
+                        
+                        if animStyle == "Rainbow" then
+                            local hue = (tick() * speed * 50) % 360
+                            Items.Chams.FillColor = Color3.fromHSV(hue/360, 1, 1)
                             Items.Chams.FillTransparency = MiscOptions.Chams_Fill_Color.Transparency
-                            Items.Chams.OutlineTransparency = MiscOptions.Chams_Outline_Color.Transparency
+                        elseif animStyle == "Breathe" then
+                            local breathe_effect = math.atan(math.sin(tick() * speed)) * 2 / math.pi
+                            Items.Chams.FillColor = MiscOptions.Chams_Fill_Color.Color
+                            Items.Chams.FillTransparency = MiscOptions.Chams_Fill_Color.Transparency * (breathe_effect * 0.5 + 0.5)
+                        elseif animStyle == "Pulse" then
+                            local pulse = (math.sin(tick() * speed * 2) + 1) / 2
+                            Items.Chams.FillColor = MiscOptions.Chams_Fill_Color.Color
+                            Items.Chams.FillTransparency = MiscOptions.Chams_Fill_Color.Transparency * pulse
+                        else
+                            Items.Chams.FillColor = MiscOptions.Chams_Fill_Color.Color
+                            Items.Chams.FillTransparency = MiscOptions.Chams_Fill_Color.Transparency
                         end
                     end
 
@@ -1245,16 +1180,39 @@ local function LoadLibrary()
                         if Items.Weapon.Text ~= wName then Items.Weapon.Text = wName end
                     end
 
-                    -- ARMOR BAR
-                    if MiscOptions.ArmorBar then
-                        local armor, maxArmor = Esp.Overrides.GetArmor(Character, player)
-                        local percent = math.clamp(armor / maxArmor, 0, 1)
+                    -- FLAGS LOGIC
+                    if MiscOptions.Flags_Enabled then
+                        -- Clear current flags
+                        for _, flag in pairs(Items.Flags:GetChildren()) do flag:Destroy() end
+                        Data.Info.Flags = {}
                         
-                        Items.ArmorBarAccent.Size = dim2(percent, 0, 1, 0)
-                        Items.ArmorBarAccent.BackgroundColor3 = rgb(50, 150, 255) 
-                        Items.ArmorBar.Visible = true
+                        local function AddFlag(text, color)
+                            table.insert(Data.Info.Flags, {Text = text, Color = color})
+                        end
+
+                        -- Check Visible Flag
+                        if isVisible and MiscOptions.Flags_Visible then
+                            AddFlag("VIS", Color3.fromRGB(0, 255, 0))
+                        end
+
+                        -- Render Flags
+                        for i, flagData in pairs(Data.Info.Flags) do
+                            local flag = Esp:Create("TextLabel", {
+                                Parent = Items.Flags,
+                                Text = flagData.Text,
+                                TextColor3 = flagData.Color,
+                                BackgroundColor3 = rgb(0,0,0),
+                                BackgroundTransparency = 0.3,
+                                Size = dim2(0, 0, 0, 0),
+                                AutomaticSize = Enum.AutomaticSize.XY,
+                                TextSize = 10,
+                                Font = Enum.Font.Code,
+                                BorderSizePixel = 0
+                            })
+                            Esp:Create("UIGradient", {Parent = flag, Rotation = 90, Color = rgbseq{rgbkey(0, flagData.Color), rgbkey(1, rgb(0,0,0))}})
+                        end
                     else
-                        Items.ArmorBar.Visible = false
+                         Items.Flags:ClearAllChildren()
                     end
                 end
             end 
@@ -1264,7 +1222,6 @@ local function LoadLibrary()
                     local Items = Data and Data.Items 
                     if not Items then continue end 
                     if not Items.Holder then continue end 
-                    if not Items.Holder.Parent and not Esp.Cache then continue end
 
                     if key == "Enabled" then
                         Items.Holder.Visible = value
@@ -1294,7 +1251,7 @@ local function LoadLibrary()
                                 rgbkey(1, value.Color)
                             }
                             for _,corner in pairs(Items.Corners:GetChildren()) do 
-                                if corner:IsA("ImageLabel") then
+                                if corner:IsA("Frame") then
                                     local grad = corner:FindFirstChildOfClass("UIGradient")
                                     if grad then grad.Color = Color end
                                 end
@@ -1308,7 +1265,7 @@ local function LoadLibrary()
                                 Items.BoxGradient.Color.Keypoints[2]
                             }
                             for _,corner in pairs(Items.Corners:GetChildren()) do 
-                                 if corner:IsA("ImageLabel") then
+                                 if corner:IsA("Frame") then
                                     local grad = corner:FindFirstChildOfClass("UIGradient")
                                     if grad then grad.Color = Color end
                                 end
@@ -1321,7 +1278,7 @@ local function LoadLibrary()
                         end 
 
                         if key == "Box Fill" then 
-                            Items.Holder.BackgroundTransparency = value and 0 or 1
+                            -- Handled in Update loop mostly
                         end
 
                         if key == "Box Fill 1" then 
@@ -1358,14 +1315,19 @@ local function LoadLibrary()
                     -- Bars 
                         if key == "Healthbar" then 
                              Items.Healthbar.Parent = value and Items[Items.Healthbar.Name] or Esp.Cache  
-                             Items.HealthbarText.Parent = (value and Items.HealthbarNumber) and Items["HealthbarTexts" .. Items.Healthbar.Name] or Esp.Cache  
+                             -- FIXED: Keep HealthbarText visible if option is on, even if bar is off
+                             if not value then
+                                Items.HealthbarText.Parent = MiscOptions.Healthbar_Number and Items[Items.Healthbar.Name] or Esp.Cache
+                             else
+                                Items.HealthbarText.Parent = MiscOptions.Healthbar_Number and Items["HealthbarTexts" .. Items.Healthbar.Name] or Esp.Cache
+                             end
                         end 
 
                         if key == "Healthbar_Position" then 
                             local isEnabled = MiscOptions.Healthbar
                             Items.Healthbar.Parent = isEnabled and Items[value] or Esp.Cache
                             Items.Healthbar.Name = value 
-                            Items.HealthbarText.Parent = isEnabled and Items["HealthbarTexts" .. Items.Healthbar.Name] or Esp.Cache
+                            Items.HealthbarText.Parent = isEnabled and MiscOptions.Healthbar_Number and Items["HealthbarTexts" .. Items.Healthbar.Name] or Esp.Cache
 
                             if value == "Bottom" or value == "Top" then 
                                 Items.HealthbarGradient.Rotation = 0 
@@ -1427,16 +1389,6 @@ local function LoadLibrary()
                         end
                     -- 
 
-                    -- Armor Bar
-                        if key == "ArmorBar" then 
-                            Items.ArmorBar.Visible = value
-                        end
-                        if key == "ArmorBar_Background" then
-                            Items.ArmorBar.BackgroundColor3 = value.Color
-                            Items.ArmorBar.BackgroundTransparency = value.Transparency
-                        end
-                    --
-                    
                     -- Texts
                         local Text;
                         local Match;
@@ -1486,26 +1438,18 @@ local function LoadLibrary()
                         end 
                     -- 
 
-                    -- NEW: Skeleton & Chams Options
                     if key == "Chams" then
                         Items.Chams.Enabled = value
                     end
                     if key == "Chams_Fill_Color" then
-                        if not MiscOptions.Chams_Animated then
-                            Items.Chams.FillColor = value.Color
-                        end
-                    end
-                    if key == "Chams_Outline_Color" then
-                        if not MiscOptions.Chams_Animated then
-                            Items.Chams.OutlineColor = value.Color
-                        end
+                        Items.Chams.FillColor = value.Color
                     end
                     if key == "Skeleton" then
                         for _, bone in pairs(Data.Bones) do bone.Visible = false end
                     end
                     if key == "Skeleton_Thickness" then
                         for _, bone in pairs(Data.Bones) do 
-                            -- Size is updated in Update loop via Width logic
+                            -- Size updated in Update
                         end
                     end
                     if key == "Skeleton_Transparency" then
@@ -1515,19 +1459,16 @@ local function LoadLibrary()
             end; 
             
             function Esp.Unload() 
-                -- Unload all players safely
                 for name, data in pairs(Esp.Players) do
                     if data.Destroy then
                         pcall(data.Destroy)
                     end
                     Esp.Players[name] = nil
                 end
-                -- Unbind loop
                 if Esp.Loop then 
                     RunService:UnbindFromRenderStep("EspLoop")
                     Esp.Loop = nil
                 end 
-                -- Destroy UIs
                 if Esp.Cache then pcall(function() Esp.Cache:Destroy() end) end
                 if Esp.ScreenGui then pcall(function() Esp.ScreenGui:Destroy() end) end
                 getgenv().KiwiSenseEsp = nil
@@ -1565,4 +1506,4 @@ local function LoadLibrary()
     return getgenv().KiwiSenseEsp
 end
 
-return LoadLibrary
+return LoadLibrary()
