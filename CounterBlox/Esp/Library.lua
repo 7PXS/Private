@@ -1,14 +1,10 @@
 --[[
-    KiwiSense ESP Library v2.1 - FIXED
+    KiwiSense ESP Library v2.2 - Fixed Health Text Position
     Theme: Preset (Purple/Dark Grey)
     
-    Fixes Applied:
-        - Fixed HealthbarTexts container references (now properly created)
-        - Fixed Chams_Anim_Speed trailing comma syntax
-        - Fixed Box Fill gradient enabling logic
-        - Fixed healthbar text parenting
-        - Added nil checks for bone updates
-        - Fixed ArmorBar implementation (stub for future use)
+    Fixes:
+        - Fixed Healthbar Text appearing before Bar when on Left side.
+        - Bar now always appears on the outside (farthest from player), followed by Text, then Name (closest to player).
 ]]
 
 local function LoadLibrary()
@@ -416,7 +412,7 @@ local function LoadLibrary()
 
                             -- FIXED: Create HealthbarTextsLeft container
                             Items.HealthbarTextsLeft = Esp:Create("Frame", {
-                                LayoutOrder = 100;
+                                LayoutOrder = 0; -- Changed from 100 to 0
                                 Parent = Esp.Cache;
                                 BackgroundTransparency = 1;
                                 Name = "\0";
@@ -668,7 +664,7 @@ local function LoadLibrary()
                         });
 
                         Items.UIStroke = Esp:Create( "UIStroke" , {
-                            Color = rgb(255, 255, 255);
+                            Color = rgb(255,255,255);
                             LineJoinMode = Enum.LineJoinMode.Miter;
                             Parent = Items.Inner
                         });
@@ -684,7 +680,8 @@ local function LoadLibrary()
                             BorderColor3 = rgb(0, 0, 0);
                             Size = dim2(0, 3, 0, 3);
                             BorderSizePixel = 0;
-                            BackgroundColor3 = rgb(0, 0, 0)
+                            BackgroundColor3 = rgb(0, 0, 0);
+                            LayoutOrder = 100 -- FIXED: Sets Bar to outside on both sides
                         });
 
                         Items.HealthbarAccent = Esp:Create( "Frame" , {
@@ -706,7 +703,7 @@ local function LoadLibrary()
 
                         Items.HealthbarText = Esp:Create( "TextLabel", {
                             FontFace = Fonts.ProggyClean or Font.fromEnum(Enum.Font.SourceSans);
-                            TextColor3 = rgb(255, 255, 255);
+                            TextColor3 = rgb(255,255, 255);
                             BorderColor3 = rgb(0, 0, 0);
                             Parent = Esp.Cache;
                             Name = "\0";
@@ -768,7 +765,7 @@ local function LoadLibrary()
 
                         Items.Distance = Esp:Create( "TextLabel", {
                             FontFace = Fonts.ProggyClean or Font.fromEnum(Enum.Font.SourceSans);
-                            TextColor3 = rgb(255, 255, 255);
+                            TextColor3 = rgb(255,255, 255);
                             BorderColor3 = rgb(0, 0, 0);
                             Parent = Esp.Cache;
                             Name = "Bottom";
@@ -832,7 +829,7 @@ local function LoadLibrary()
                     local TweenSpeed = MiscOptions.Healthbar_Easing_Speed
                     if Data.Info.OldHealth then
                         local DamageTaken = math.abs(Data.Info.OldHealth - Value)
-                        local PercentDamage = math.clamp(DamageTaken / MaxHealth, 0, 1)
+                        local PercentDamage = math.clamp(DamageTaken / MaxHealth, 0,1)
                         TweenSpeed = math.clamp(1.0 - PercentDamage, 0.1, 1.0)
                     end
                     Data.Info.OldHealth = Value
@@ -1289,7 +1286,7 @@ local function LoadLibrary()
                         end
 
                         if isVisible and MiscOptions.Flags_Visible then
-                            AddFlag("VIS", Color3.fromRGB(0, 255, 0))
+                            AddFlag("VIS", Color3.fromRGB(0,255,0))
                         end
 
                         for i, flagData in pairs(Data.Info.Flags) do
