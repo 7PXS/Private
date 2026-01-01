@@ -1,12 +1,14 @@
 --[[
-    KiwiSense ESP Library v2.1
+    KiwiSense ESP Library v2.1 - FIXED
     Theme: Preset (Purple/Dark Grey)
     
-    Fixes:
-        - Fixed getgenv() nil check for compatibility.
-        - Fixed Flags not appearing (Added parenting logic).
-        - Fixed Loop binding crash on re-run.
-        - Added robust nil checks for Boxes and Corners.
+    Fixes Applied:
+        - Fixed HealthbarTexts container references (now properly created)
+        - Fixed Chams_Anim_Speed trailing comma syntax
+        - Fixed Box Fill gradient enabling logic
+        - Fixed healthbar text parenting
+        - Added nil checks for bone updates
+        - Fixed ArmorBar implementation (stub for future use)
 ]]
 
 local function LoadLibrary()
@@ -52,7 +54,7 @@ local function LoadLibrary()
 
         -- Boxes
         ["Boxes"] = false;
-        ["BoxType"] = "Corner"; -- Default to Corner
+        ["BoxType"] = "Corner";
         
         ["Box Gradient 1"] = { Color = Theme.Accent, Transparency = 0.8 }; 
         ["Box Gradient 2"] = { Color = Theme.Accent, Transparency = 0.8 };
@@ -103,7 +105,7 @@ local function LoadLibrary()
         ["Weapon_Text_Font"] = "Verdana";
         ["Weapon_Text_Size"] = 11;
 
-        -- NEW: Visibility Check Toggle
+        -- Visibility Check Toggle
         ["VisCheck_Colors"] = true;
 
         -- Skeleton Options
@@ -112,12 +114,12 @@ local function LoadLibrary()
         ["Skeleton_Color"] = { Color = Color3.new(1,1,1), Transparency = 0 };
         ["Skeleton_Transparency"] = 0;
 
-        -- CHAMS (Updated)
+        -- CHAMS (Fixed trailing comma)
         ["Chams"] = false;
         ["Chams_Fill_Color"] = { Color = Theme.Accent, Transparency = 0.5 };
         ["Chams_Depth_Mode"] = Enum.HighlightDepthMode.AlwaysOnTop;
-        ["Chams_Anim_Style"] = "Rainbow"; -- Options: "Rainbow", "Breathe", "Pulse"
-        ["Chams_Anim_Speed"] = 2,
+        ["Chams_Anim_Style"] = "Rainbow";
+        ["Chams_Anim_Speed"] = 2;
         
         -- FLAGS
         ["Flags_Enabled"] = true;
@@ -343,7 +345,7 @@ local function LoadLibrary()
                         Player = player;
                         OldHealth = 0;
                         TeamColor = player.TeamColor.Color;
-                        Flags = {}; -- Custom flags table
+                        Flags = {};
                     },
                     Drawings = { }, 
                     Type = typechar or "player",
@@ -412,6 +414,24 @@ local function LoadLibrary()
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
 
+                            -- FIXED: Create HealthbarTextsLeft container
+                            Items.HealthbarTextsLeft = Esp:Create("Frame", {
+                                LayoutOrder = 100;
+                                Parent = Esp.Cache;
+                                BackgroundTransparency = 1;
+                                Name = "\0";
+                                BorderColor3 = rgb(0, 0, 0);
+                                BorderSizePixel = 0;
+                                AutomaticSize = Enum.AutomaticSize.X;
+                                BackgroundColor3 = rgb(255, 255, 255)
+                            });
+
+                            Esp:Create("UIListLayout", {
+                                Parent = Items.HealthbarTextsLeft;
+                                Padding = dim(0, 1);
+                                SortOrder = Enum.SortOrder.LayoutOrder
+                            });
+
                             Items.Bottom = Esp:Create( "Frame" , {
                                 Parent = Items.Holder;
                                 Size = dim2(1, 0, 0, 0);
@@ -446,6 +466,24 @@ local function LoadLibrary()
 
                             Esp:Create( "UIListLayout", {
                                 Parent = Items.BottomTexts;
+                                Padding = dim(0, 1);
+                                SortOrder = Enum.SortOrder.LayoutOrder
+                            });
+
+                            -- FIXED: Create HealthbarTextsBottom container
+                            Items.HealthbarTextsBottom = Esp:Create("Frame", {
+                                LayoutOrder = 100;
+                                Parent = Esp.Cache;
+                                BackgroundTransparency = 1;
+                                Name = "\0";
+                                BorderColor3 = rgb(0, 0, 0);
+                                BorderSizePixel = 0;
+                                AutomaticSize = Enum.AutomaticSize.XY;
+                                BackgroundColor3 = rgb(255, 255, 255)
+                            });
+
+                            Esp:Create("UIListLayout", {
+                                Parent = Items.HealthbarTextsBottom;
                                 Padding = dim(0, 1);
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
@@ -488,6 +526,24 @@ local function LoadLibrary()
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
 
+                            -- FIXED: Create HealthbarTextsTop container
+                            Items.HealthbarTextsTop = Esp:Create("Frame", {
+                                LayoutOrder = 100;
+                                Parent = Esp.Cache;
+                                BackgroundTransparency = 1;
+                                Name = "\0";
+                                BorderColor3 = rgb(0, 0, 0);
+                                BorderSizePixel = 0;
+                                AutomaticSize = Enum.AutomaticSize.XY;
+                                BackgroundColor3 = rgb(255, 255, 255)
+                            });
+
+                            Esp:Create("UIListLayout", {
+                                Parent = Items.HealthbarTextsTop;
+                                Padding = dim(0, 1);
+                                SortOrder = Enum.SortOrder.LayoutOrder
+                            });
+
                             Items.Right = Esp:Create( "Frame" , {
                                 Parent = Esp.Cache;
                                 Size = dim2(0, 0, 1, 0);
@@ -524,8 +580,26 @@ local function LoadLibrary()
                                 Padding = dim(0, 1);
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
+
+                            -- FIXED: Create HealthbarTextsRight container
+                            Items.HealthbarTextsRight = Esp:Create("Frame", {
+                                LayoutOrder = 100;
+                                Parent = Esp.Cache;
+                                BackgroundTransparency = 1;
+                                Name = "\0";
+                                BorderColor3 = rgb(0, 0, 0);
+                                BorderSizePixel = 0;
+                                AutomaticSize = Enum.AutomaticSize.X;
+                                BackgroundColor3 = rgb(255, 255, 255)
+                            });
+
+                            Esp:Create("UIListLayout", {
+                                Parent = Items.HealthbarTextsRight;
+                                Padding = dim(0, 1);
+                                SortOrder = Enum.SortOrder.LayoutOrder
+                            });
                         
-                    -- Corner Boxes (Fixed Styling)
+                    -- Corner Boxes
                         Items.Corners = Esp:Create( "Frame", {
                             Parent = Esp.Cache; 
                             Name = "\0";
@@ -547,7 +621,6 @@ local function LoadLibrary()
                                 AnchorPoint = anchor,
                                 ZIndex = 2
                             })
-                            -- Black Outline Styling
                             local stroke = Instance.new("UIStroke")
                             stroke.Color = Color3.new(0,0,0)
                             stroke.Thickness = 1
@@ -557,16 +630,12 @@ local function LoadLibrary()
                         end
 
                         local cornerSize = 0.2
-                        -- Top Left
                         CreateCornerLine("TL_H", dim2(0,0,0,0), dim2(cornerSize, 0, 0, 1), Vector2.new(0,0)) 
                         CreateCornerLine("TL_V", dim2(0,0,0,0), dim2(0, 1, cornerSize, 0), Vector2.new(0,0)) 
-                        -- Top Right
                         CreateCornerLine("TR_H", dim2(1,0,0,0), dim2(cornerSize, 0, 0, 1), Vector2.new(1,0))
                         CreateCornerLine("TR_V", dim2(1,0,0,0), dim2(0, 1, cornerSize, 0), Vector2.new(1,0))
-                        -- Bottom Left
                         CreateCornerLine("BL_H", dim2(0,0,1,0), dim2(cornerSize, 0, 0, 1), Vector2.new(0,1))
                         CreateCornerLine("BL_V", dim2(0,0,1,0), dim2(0, 1, cornerSize, 0), Vector2.new(0,1))
-                        -- Bottom Right
                         CreateCornerLine("BR_H", dim2(1,0,1,0), dim2(cornerSize, 0, 0, 1), Vector2.new(1,1))
                         CreateCornerLine("BR_V", dim2(1,0,1,0), dim2(0, 1, cornerSize, 0), Vector2.new(1,1))
 
@@ -574,7 +643,7 @@ local function LoadLibrary()
                         Items.Box = Esp:Create( "Frame" , {
                             Parent = Esp.Cache; 
                             Name = "\0";
-                            BackgroundTransparency = 1; -- Default off
+                            BackgroundTransparency = 1;
                             Position = dim2(0, 1, 0, 1);
                             BorderColor3 = rgb(0, 0, 0);
                             Size = dim2(1, -2, 1, -2);
@@ -654,7 +723,6 @@ local function LoadLibrary()
                             Parent = Items.HealthbarText;
                             LineJoinMode = Enum.LineJoinMode.Miter
                         });
-                    -- 
                     
                     -- Texts
                         Items.Text = Esp:Create( "TextLabel", {
@@ -726,7 +794,7 @@ local function LoadLibrary()
                             Size = dim2(0, 0, 0, 0),
                             AutomaticSize = Enum.AutomaticSize.XY,
                             BorderSizePixel = 0,
-                            Position = dim2(0.5, 0, 1, 0), -- Bottom Center by default
+                            Position = dim2(0.5, 0, 1, 0),
                             AnchorPoint = Vector2.new(0.5, 1)
                         })
                         
@@ -737,7 +805,6 @@ local function LoadLibrary()
                             VerticalAlignment = Enum.VerticalAlignment.Bottom,
                             HorizontalAlignment = Enum.HorizontalAlignment.Center
                         })
-                    -- 
 
                     -- Chams
                     Items.Chams = Instance.new("Highlight")
@@ -855,21 +922,24 @@ local function LoadLibrary()
                     end)
                 end     
 
-                for _,HealthHolder in pairs({"Right", "Left"}) do
+                -- FIXED: Proper healthbar text container management
+                for _,HealthHolder in pairs({"Right", "Left", "Top", "Bottom"}) do
                     local Parent = Items["HealthbarTexts" .. HealthHolder]
-                    Esp:Connection(Parent.ChildAdded, function()
-                        task.wait(.1)
-                        if Parent.Parent == nil then return end
-                        Parent.Parent = Items[HealthHolder]
-                    end)    
+                    if Parent then
+                        Esp:Connection(Parent.ChildAdded, function()
+                            task.wait(.1)
+                            if Parent.Parent == nil then return end
+                            Parent.Parent = Items[HealthHolder]
+                        end)    
 
-                    Esp:Connection(Parent.ChildRemoved, function()
-                        task.wait(.1)
-                        if #Parent:GetChildren() == 0 then
-                            if Parent.Parent == nil then return end 
-                            Parent.Parent = Esp.Cache
-                        end 
-                    end)
+                        Esp:Connection(Parent.ChildRemoved, function()
+                            task.wait(.1)
+                            if #Parent:GetChildren() == 0 then
+                                if Parent.Parent == nil then return end 
+                                Parent.Parent = Esp.Cache
+                            end 
+                        end)
+                    end
                 end 
 
                 Esp.Players[ player.Name ] = Data
@@ -878,6 +948,7 @@ local function LoadLibrary()
 
             -- Helper to update Skeleton Bone Frames
             local function UpdateBone(frame, part1, part2, targetColor)
+                if not frame then return end
                 frame.Visible = false 
                 if not part1 or not part2 or not part1.Parent or not part2.Parent then return end
                 
@@ -910,7 +981,11 @@ local function LoadLibrary()
                         if Data.Items and Data.Items.Chams then
                             Data.Items.Chams.Enabled = false
                         end
-                        for _, bone in pairs(Data.Bones) do bone.Visible = false end
+                        if Data.Bones then
+                            for _, bone in pairs(Data.Bones) do 
+                                if bone then bone.Visible = false end
+                            end
+                        end
                      end
                     return 
                 end 
@@ -931,7 +1006,11 @@ local function LoadLibrary()
                     if not Character or not Humanoid or not RootPart or Humanoid.Health <= 0 then
                         Items.Holder.Visible = false
                         Items.Chams.Enabled = false
-                        for _, bone in pairs(Data.Bones) do bone.Visible = false end
+                        if Data.Bones then
+                            for _, bone in pairs(Data.Bones) do 
+                                if bone then bone.Visible = false end
+                            end
+                        end
                         continue
                     end
 
@@ -947,7 +1026,11 @@ local function LoadLibrary()
                     if not OnScreen then
                         Holder.Visible = false
                         Items.Chams.Enabled = false
-                        for _, bone in pairs(Data.Bones) do bone.Visible = false end
+                        if Data.Bones then
+                            for _, bone in pairs(Data.Bones) do 
+                                if bone then bone.Visible = false end
+                            end
+                        end
                         continue
                     end
 
@@ -957,6 +1040,7 @@ local function LoadLibrary()
                     if Items.Box then Items.Box.Visible = MiscOptions.Boxes and MiscOptions.BoxType == "Box" end
                     if Items.Corners then Items.Corners.Visible = MiscOptions.Boxes and MiscOptions.BoxType == "Corner" end
                     
+                    -- FIXED: Box Fill gradient enabling
                     if MiscOptions.Boxes then
                         if MiscOptions.BoxType == "Box" then
                             if Items.Box then
@@ -964,9 +1048,11 @@ local function LoadLibrary()
                             end
                         elseif MiscOptions.BoxType == "Corner" then
                             Items.Holder.BackgroundTransparency = MiscOptions["Box Fill"] and MiscOptions["Box Fill 1"].Transparency or 1
+                            Items.HolderGradient.Enabled = MiscOptions["Box Fill"]
                         end
                     else
                         Items.Holder.BackgroundTransparency = 1
+                        Items.HolderGradient.Enabled = false
                         if Items.Box then Items.Box.BackgroundTransparency = 1 end
                     end
 
@@ -1084,7 +1170,7 @@ local function LoadLibrary()
                     end
 
                     -- SKELETON
-                    if MiscOptions.Skeleton then
+                    if MiscOptions.Skeleton and Data.Bones then
                         local boneIdx = 1
                         local connections = {}
 
@@ -1145,17 +1231,21 @@ local function LoadLibrary()
                                     
                                     if onScreen1 and onScreen2 then
                                         local frame = Data.Bones[boneIdx]
-                                        frame.Visible = true
-                                        frame.Position = UDim2.fromOffset((p1Pos.X + p2Pos.X)/2, (p1Pos.Y + p2Pos.Y)/2)
-                                        local dist = math.sqrt((p2Pos.X - p1Pos.X)^2 + (p2Pos.Y - p1Pos.Y)^2)
-                                        frame.Size = UDim2.fromOffset(dist, MiscOptions.Skeleton_Thickness)
-                                        frame.Rotation = math.deg(math.atan2(p2Pos.Y - p1Pos.Y, p2Pos.X - p1Pos.X))
-                                        
-                                        frame.BackgroundColor3 = skeletonColor
-                                        local stroke = frame:FindFirstChildOfClass("UIStroke")
-                                        if stroke then stroke.Color = Color3.new(0,0,0) end
+                                        if frame then
+                                            frame.Visible = true
+                                            frame.Position = UDim2.fromOffset((p1Pos.X + p2Pos.X)/2, (p1Pos.Y + p2Pos.Y)/2)
+                                            local dist = math.sqrt((p2Pos.X - p1Pos.X)^2 + (p2Pos.Y - p1Pos.Y)^2)
+                                            frame.Size = UDim2.fromOffset(dist, MiscOptions.Skeleton_Thickness)
+                                            frame.Rotation = math.deg(math.atan2(p2Pos.Y - p1Pos.Y, p2Pos.X - p1Pos.X))
+                                            
+                                            frame.BackgroundColor3 = skeletonColor
+                                            local stroke = frame:FindFirstChildOfClass("UIStroke")
+                                            if stroke then stroke.Color = Color3.new(0,0,0) end
+                                        end
                                     else
-                                        Data.Bones[boneIdx].Visible = false
+                                        if Data.Bones[boneIdx] then
+                                            Data.Bones[boneIdx].Visible = false
+                                        end
                                     end
                                 else
                                     UpdateBone(Data.Bones[boneIdx], pair[1], pair[2], skeletonColor)
@@ -1165,10 +1255,16 @@ local function LoadLibrary()
                         end
                         
                         for i = boneIdx, #Data.Bones do
-                            Data.Bones[i].Visible = false
+                            if Data.Bones[i] then
+                                Data.Bones[i].Visible = false
+                            end
                         end
                     else
-                        for _, bone in pairs(Data.Bones) do bone.Visible = false end
+                        if Data.Bones then
+                            for _, bone in pairs(Data.Bones) do 
+                                if bone then bone.Visible = false end
+                            end
+                        end
                     end
 
                     -- Update Text
@@ -1180,10 +1276,12 @@ local function LoadLibrary()
                         if Items.Weapon.Text ~= wName then Items.Weapon.Text = wName end
                     end
 
-                    -- FLAGS LOGIC (PARENTING FIX)
+                    -- FLAGS LOGIC
                     if MiscOptions.Flags_Enabled then
-                        Items.Flags.Parent = Items.Holder -- Fixed: Parent to Holder
-                        for _, flag in pairs(Items.Flags:GetChildren()) do flag:Destroy() end
+                        Items.Flags.Parent = Items.Holder
+                        for _, flag in pairs(Items.Flags:GetChildren()) do 
+                            if flag:IsA("GuiObject") then flag:Destroy() end
+                        end
                         Data.Info.Flags = {}
                         
                         local function AddFlag(text, color)
@@ -1212,7 +1310,9 @@ local function LoadLibrary()
                         end
                     else
                          Items.Flags.Parent = Esp.Cache
-                         Items.Flags:ClearAllChildren()
+                         for _, flag in pairs(Items.Flags:GetChildren()) do 
+                            if flag:IsA("GuiObject") then flag:Destroy() end
+                        end
                     end
                 end
             end 
@@ -1282,6 +1382,10 @@ local function LoadLibrary()
                         end 
 
                         if key == "Box Fill" then 
+                            -- FIXED: Enable/disable gradient properly
+                            if Items.HolderGradient then
+                                Items.HolderGradient.Enabled = value
+                            end
                         end
 
                         if key == "Box Fill 1" then 
@@ -1325,7 +1429,10 @@ local function LoadLibrary()
                              if not value then
                                 Items.HealthbarText.Parent = MiscOptions.Healthbar_Number and Items[Items.Healthbar.Name] or Esp.Cache
                              else
-                                Items.HealthbarText.Parent = MiscOptions.Healthbar_Number and Items["HealthbarTexts" .. Items.Healthbar.Name] or Esp.Cache
+                                local containerName = "HealthbarTexts" .. Items.Healthbar.Name
+                                if Items[containerName] then
+                                    Items.HealthbarText.Parent = MiscOptions.Healthbar_Number and Items[containerName] or Esp.Cache
+                                end
                              end
                         end 
 
@@ -1333,7 +1440,11 @@ local function LoadLibrary()
                             local isEnabled = MiscOptions.Healthbar
                             Items.Healthbar.Parent = isEnabled and Items[value] or Esp.Cache
                             Items.Healthbar.Name = value 
-                            Items.HealthbarText.Parent = isEnabled and MiscOptions.Healthbar_Number and Items["HealthbarTexts" .. Items.Healthbar.Name] or Esp.Cache
+                            
+                            local containerName = "HealthbarTexts" .. value
+                            if Items[containerName] then
+                                Items.HealthbarText.Parent = isEnabled and MiscOptions.Healthbar_Number and Items[containerName] or Esp.Cache
+                            end
 
                             if value == "Bottom" or value == "Top" then 
                                 Items.HealthbarGradient.Rotation = 0 
@@ -1347,8 +1458,10 @@ local function LoadLibrary()
                         end
                         
                         if key == "Healthbar_Number" then  
-                            local Parent = Items["HealthbarTexts" .. Items.Healthbar.Name]
-                            Items.HealthbarText.Parent = value and Parent or Esp.Cache
+                            local containerName = "HealthbarTexts" .. Items.Healthbar.Name
+                            if Items[containerName] then
+                                Items.HealthbarText.Parent = value and Items[containerName] or Esp.Cache
+                            end
                             Items.HealthbarText.Visible = value
                         end
 
@@ -1451,14 +1564,18 @@ local function LoadLibrary()
                         Items.Chams.FillColor = value.Color
                     end
                     if key == "Skeleton" then
-                        for _, bone in pairs(Data.Bones) do bone.Visible = false end
-                    end
-                    if key == "Skeleton_Thickness" then
-                        for _, bone in pairs(Data.Bones) do 
+                        if Data.Bones then
+                            for _, bone in pairs(Data.Bones) do 
+                                if bone then bone.Visible = false end
+                            end
                         end
                     end
                     if key == "Skeleton_Transparency" then
-                        for _, bone in pairs(Data.Bones) do bone.BackgroundTransparency = value end
+                        if Data.Bones then
+                            for _, bone in pairs(Data.Bones) do 
+                                if bone then bone.BackgroundTransparency = value end
+                            end
+                        end
                     end
                 end 
             end; 
