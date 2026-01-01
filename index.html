@@ -3,137 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome Skids</title>
+    <title>Welcome Skids // Nexus</title>
+    
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Space+Grotesk:wght@300;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* 
-           DESIGN TOKENS & RESET 
-           Based on Beminee/Brutalist style 
-        */
+        /* --- VARIABLES --- */
         :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --accent-color: #000000;
-            --border-width: 1px;
-            --font-main: 'Courier New', Courier, monospace; /* Essential for this style */
-            --spacing-unit: 1.5rem;
+            --bg-dark: #030305;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-purple: #7000ff;
+            --accent-cyan: #00eaff;
+            --text-main: #ffffff;
+            --text-muted: #888899;
         }
 
+        /* --- SETUP --- */
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--font-main);
-            font-size: 16px;
-            line-height: 1.4;
-            overflow-x: hidden;
-        }
-
-        /* TYPOGRAPHY */
-        h1, h2, h3, h4, p, a, li {
-            text-transform: uppercase;
-            letter-spacing: -0.02em;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-block;
-        }
-
-        /* UTILITIES */
-        .border-top { border-top: var(--border-width) solid var(--accent-color); }
-        .border-bottom { border-bottom: var(--border-width) solid var(--accent-color); }
-        .border-right { border-right: var(--border-width) solid var(--accent-color); }
-        .border-left { border-left: var(--border-width) solid var(--accent-color); }
-        
-        .flex { display: flex; }
-        .flex-between { justify-content: space-between; }
-        .flex-center { align-items: center; justify-content: center; }
-        .flex-col { flex-direction: column; }
-
-        .grid { display: grid; }
-
-        /* NAVIGATION */
-        nav {
-            height: 80px;
-            padding: 0 2rem;
-            position: sticky;
-            top: 0;
-            background: var(--bg-color);
-            z-index: 100;
-        }
-
-        .nav-link {
-            padding: 0.5rem 1rem;
-            border: 1px solid transparent;
-        }
-
-        .nav-link:hover {
-            background: var(--accent-color);
-            color: var(--bg-color);
-        }
-
-        .menu-btn {
-            border: 1px solid var(--accent-color);
-            padding: 0.5rem 1.5rem;
-            font-weight: bold;
-        }
-
-        .menu-btn:hover {
-            background: var(--accent-color);
-            color: var(--bg-color);
-            border-color: var(--accent-color);
-        }
-
-        /* HERO SECTION */
-        .hero {
-            min-height: 80vh;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 4rem 2rem;
+            flex-direction: column; /* Changed to column to accommodate footer marquee */
             position: relative;
         }
 
-        .hero-title {
-            font-size: clamp(3rem, 15vw, 12rem);
-            line-height: 0.85;
+        /* --- BACKGROUND GRADIENT ORBS --- */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--accent-purple), transparent 70%);
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-cyan), transparent 70%);
+            bottom: -50px;
+            right: -50px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 50px); }
+        }
+
+        /* --- GRID OVERLAY --- */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        /* --- CENTER CONTENT WRAPPER --- */
+        .content-wrapper {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* --- MAIN CARD --- */
+        .glass-panel {
+            width: 90%;
+            max-width: 900px;
+            padding: 5rem 4rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: scaleIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* Top highlight line */
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 6rem;
+            line-height: 1;
             font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.04em;
+            background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 span {
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* --- FLOATING BADGE --- */
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: rgba(112, 0, 255, 0.15);
+            color: #d0aaff;
+            font-size: 0.8rem;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
             margin-bottom: 2rem;
+            border: 1px solid rgba(112, 0, 255, 0.3);
+            box-shadow: 0 0 15px rgba(112, 0, 255, 0.2);
         }
 
-        .hero-title span {
-            display: block;
-        }
-
-        .hero-sub {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin-top: 1rem;
-        }
-
-        /* MARQUEE / SCROLLING TEXT */
+        /* --- SCROLLING TEXT (MARQUEE) --- */
         .marquee-container {
-            border-top: var(--border-width) solid var(--accent-color);
-            border-bottom: var(--border-width) solid var(--accent-color);
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.2rem 0;
             overflow: hidden;
             white-space: nowrap;
-            padding: 1.5rem 0;
-            background: var(--bg-color);
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(5px);
         }
 
         .marquee-content {
             display: inline-block;
             animation: scroll 20s linear infinite;
-            font-size: 1.5rem;
-            font-weight: bold;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+        }
+
+        .marquee-content span {
+            color: var(--text-main);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .separator {
+            color: var(--accent-cyan);
+            margin: 0 2rem;
         }
 
         @keyframes scroll {
@@ -141,164 +209,45 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* GRID CONTENT SECTION */
-        .content-grid {
-            grid-template-columns: repeat(3, 1fr);
-            width: 100%;
+        /* --- ANIMATIONS --- */
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
+            h1 { font-size: 3.5rem; }
+            .glass-panel { padding: 3rem 1.5rem; width: 95%; }
         }
-
-        .grid-item {
-            aspect-ratio: 1 / 1;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: background 0.3s ease, color 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .grid-item:hover {
-            background: var(--accent-color);
-            color: var(--bg-color);
-        }
-
-        .grid-item h3 {
-            font-size: 1.5rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .grid-item p {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            position: relative;
-            z-index: 2;
-        }
-
-        .grid-item img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.1; /* Subtle background texture */
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            z-index: 1;
-            filter: grayscale(100%);
-        }
-
-        .grid-item:hover img {
-            opacity: 0.2;
-            transform: scale(1.05);
-        }
-
-        /* FOOTER */
-        footer {
-            padding: 4rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        .footer-col h4 {
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-            text-decoration: underline;
-        }
-
-        .footer-links li {
-            list-style: none;
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-links a:hover {
-            background: black;
-            color: white;
-        }
-
     </style>
 </head>
 <body>
 
-    <!-- NAV -->
-    <nav class="flex flex-between flex-center border-bottom">
-        <div style="font-weight: bold; font-size: 1.2rem;">SKIDS_OS_V1.0</div>
-        <div class="flex" style="gap: 1rem;">
-            <a href="#" class="nav-link">INDEX</a>
-            <a href="#" class="nav-link">INFO</a>
-            <a href="#" class="menu-btn">MENU</a>
-        </div>
-    </nav>
+    <!-- Background Elements -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-overlay"></div>
 
-    <!-- HERO -->
-    <header class="hero border-bottom">
-        <div class="hero-title">
-            <span>WELCOME</span>
-            <span>SKIDS</span>
+    <!-- Main Centered Content -->
+    <div class="content-wrapper">
+        <div class="glass-panel">
+            <div class="badge">System Online</div>
+            
+            <h1>Welcome <span>Skids</span></h1>
+            
+            <p>
+                What Are you Doing Here Huh?
+            </p>
         </div>
-        <p class="hero-sub">
-            SYSTEM ACCESS GRANTED. // MINIMALIST BRUTALIST INTERFACE LOADED. // PLEASE PROCEED TO THE GRID SECTION FOR DATA.
-        </p>
-    </header>
+    </div>
 
-    <!-- MARQUEE -->
-    <section class="marquee-container">
+    <!-- Scrolling Text Footer -->
+    <div class="marquee-container">
         <div class="marquee-content">
-            WELCOME SKIDS &nbsp;///&nbsp; INITIALIZING PROTOCOL &nbsp;///&nbsp; DO NOT PANIC &nbsp;///&nbsp; SYSTEM ONLINE &nbsp;///&nbsp; WELCOME SKIDS &nbsp;///&nbsp; INITIALIZING PROTOCOL &nbsp;///&nbsp; DO NOT PANIC &nbsp;///&nbsp; SYSTEM ONLINE &nbsp;///
+            WELCOME SKIDS <span class="separator">///</span> INITIALIZING PROTOCOL <span class="separator">///</span> <span>SYSTEM SECURE</span> <span class="separator">///</span> DECENTRALIZED NETWORK ACTIVE <span class="separator">///</span> WELCOME SKIDS <span class="separator">///</span> INITIALIZING PROTOCOL <span class="separator">///</span> <span>SYSTEM SECURE</span> <span class="separator">///</span> DECENTRALIZED NETWORK ACTIVE <span class="separator">///</span>
         </div>
-    </section>
-
-    <!-- 3-COLUMN GRID SHOWCASE -->
-    <main>
-        <section class="grid content-grid border-bottom">
-            <!-- Item 1 -->
-            <article class="grid-item border-right border-bottom">
-                <img src="https://picsum.photos/seed/tech1/600/600" alt="Abstract texture">
-                <h3>01. ENTRY</h3>
-                <p>Primary access point verified.</p>
-            </article>
-
-            <!-- Item 2 -->
-            <article class="grid-item border-right border-bottom">
-                <img src="https://picsum.photos/seed/tech2/600/600" alt="Abstract texture">
-                <h3>02. DATA</h3>
-                <p>Secure connection established.</p>
-            </article>
-
-            <!-- Item 3 -->
-            <article class="grid-item border-bottom">
-                <img src="https://picsum.photos/seed/tech3/600/600" alt="Abstract texture">
-                <h3>03. LOGS</h3>
-                <p>Recording user interaction.</p>
-            </article>
-        </section>
-    </main>
-
-    <!-- FOOTER -->
-    <footer>
-        <div class="footer-col">
-            <h4>STATUS: ONLINE</h4>
-            <p>© 2023 SKIDS INC.</p>
-            <p>ALL RIGHTS RESERVED.</p>
-        </div>
-        <div class="footer-col">
-            <ul class="footer-links">
-                <li><a href="#">-> TWITTER</a></li>
-                <li><a href="#">-> GITHUB</a></li>
-                <li><a href="#">-> DISCORD</a></li>
-            </ul>
-        </div>
-    </footer>
+    </div>
 
 </body>
 </html>
