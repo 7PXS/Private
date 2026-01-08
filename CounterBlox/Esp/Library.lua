@@ -1,10 +1,12 @@
 --[[
-    KiwiSense ESP Library v2.2 - Fixed Health Text Position
+    KiwiSense ESP Library v2.2 - Fixed Health Text Position & Custom Instances
     Theme: Preset (Purple/Dark Grey)
     
     Fixes:
         - Fixed Healthbar Text appearing before Bar when on Left side.
         - Bar now always appears on the outside (farthest from player), followed by Text, then Name (closest to player).
+        - Fixed crash when creating Custom ESP instances (e.g. Devils/Entities) that are not real Players.
+        - Fixed crash in Raycasting/Visibility check for custom instances.
 ]]
 
 local function LoadLibrary()
@@ -110,7 +112,7 @@ local function LoadLibrary()
         ["Skeleton_Color"] = { Color = Color3.new(1,1,1), Transparency = 0 };
         ["Skeleton_Transparency"] = 0;
 
-        -- CHAMS (Fixed trailing comma)
+        -- CHAMS
         ["Chams"] = false;
         ["Chams_Fill_Color"] = { Color = Theme.Accent, Transparency = 0.5 };
         ["Chams_Depth_Mode"] = Enum.HighlightDepthMode.AlwaysOnTop;
@@ -332,6 +334,18 @@ local function LoadLibrary()
             end
 
             function Esp.CreateObject( player, typechar )
+                -- Safe TeamColor Getter for Fake/Real Players
+                local function getTeamColor(obj)
+                    if obj.TeamColor then
+                        if type(obj.TeamColor) == "table" and obj.TeamColor.Color then
+                            return obj.TeamColor.Color
+                        elseif typeof(obj.TeamColor) == "BrickColor" then
+                            return obj.TeamColor.Color
+                        end
+                    end
+                    return Color3.new(1,1,1)
+                end
+
                 local Data = { 
                     Items = { }, 
                     Info = {
@@ -340,7 +354,7 @@ local function LoadLibrary()
                         Health = 0; 
                         Player = player;
                         OldHealth = 0;
-                        TeamColor = player.TeamColor.Color;
+                        TeamColor = getTeamColor(player); -- Safe TeamColor
                         Flags = {};
                     },
                     Drawings = { }, 
@@ -410,9 +424,8 @@ local function LoadLibrary()
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
 
-                            -- FIXED: Create HealthbarTextsLeft container
                             Items.HealthbarTextsLeft = Esp:Create("Frame", {
-                                LayoutOrder = 0; -- Changed from 100 to 0
+                                LayoutOrder = 0; 
                                 Parent = Esp.Cache;
                                 BackgroundTransparency = 1;
                                 Name = "\0";
@@ -466,7 +479,6 @@ local function LoadLibrary()
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
 
-                            -- FIXED: Create HealthbarTextsBottom container
                             Items.HealthbarTextsBottom = Esp:Create("Frame", {
                                 LayoutOrder = 100;
                                 Parent = Esp.Cache;
@@ -522,7 +534,6 @@ local function LoadLibrary()
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
 
-                            -- FIXED: Create HealthbarTextsTop container
                             Items.HealthbarTextsTop = Esp:Create("Frame", {
                                 LayoutOrder = 100;
                                 Parent = Esp.Cache;
@@ -577,7 +588,6 @@ local function LoadLibrary()
                                 SortOrder = Enum.SortOrder.LayoutOrder
                             });
 
-                            -- FIXED: Create HealthbarTextsRight container
                             Items.HealthbarTextsRight = Esp:Create("Frame", {
                                 LayoutOrder = 100;
                                 Parent = Esp.Cache;
@@ -681,7 +691,7 @@ local function LoadLibrary()
                             Size = dim2(0, 3, 0, 3);
                             BorderSizePixel = 0;
                             BackgroundColor3 = rgb(0, 0, 0);
-                            LayoutOrder = 100 -- FIXED: Sets Bar to outside on both sides
+                            LayoutOrder = 100 
                         });
 
                         Items.HealthbarAccent = Esp:Create( "Frame" , {
@@ -859,27 +869,53 @@ local function LoadLibrary()
                 end
 
                 Data.RefreshDescendants = function() 
-                    local Character = (typechar and player) or player.Character or player.CharacterAdded:Wait()
-                    local Humanoid = Character:WaitForChild("Humanoid", 10)
-                    local RootPart = Character:WaitForChild("HumanoidRootPart", 10)
+                    -- Safe Character Retrieval
+                    local Character
+                    if type(player) == "table" then
+                        Character = player.Character
+                    elseif player:IsA("Player") then
+                        Character = player.Character
+                        if not Character and player.CharacterAdded then
+                            player.CharacterAdded:Wait()
+                            Character = player.Character
+                        end
+                    end
+                    
+                    if not Character then return end
+
+                    local Humanoid = Character:FindFirstChild("Humanoid", 10)
+                    local RootPart = Character:FindFirstChild("HumanoidRootPart", 10) or Character:FindFirstChild("RootPart", 10)
                     
                     if not Humanoid or not RootPart then return end
 
-                    Data.Info.Character = typechar and player or Character
+                    Data.Info.Character = Character
                     Data.Info.Humanoid = Humanoid
                     Data.Info.rootpart = RootPart
-                    Data.Info.TeamColor = player.TeamColor.Color
+                    
+                    if player:IsA("Player") and player.TeamColor then
+                         Data.Info.TeamColor = player.TeamColor.Color
+                    end
+
                     Data.RigType = Humanoid.RigType
 
                     if Items.Chams then
                         Items.Chams.Parent = Character
                     end
 
-                    Esp:Connection(Humanoid.HealthChanged, Data.HealthChanged)
-                    Esp:Connection(Character.ChildAdded, Data.ToolAdded)
-                    Esp:Connection(Character.ChildRemoved, Data.ToolAdded)
+                    -- Safe Connections
+                    if Humanoid.HealthChanged then
+                        Esp:Connection(Humanoid.HealthChanged, Data.HealthChanged)
+                    end
+                    if Character.ChildAdded then
+                        Esp:Connection(Character.ChildAdded, Data.ToolAdded)
+                    end
+                    if Character.ChildRemoved then
+                        Esp:Connection(Character.ChildRemoved, Data.ToolAdded)
+                    end
 
-                    Data.HealthChanged(Data.Info.Humanoid.Health)
+                    if Humanoid.Health > 0 then
+                        Data.HealthChanged(Humanoid.Health)
+                    end
                 end 
 
                 Data.Destroy = function()
@@ -901,7 +937,11 @@ local function LoadLibrary()
                 end 
 
                 task.spawn(Data.RefreshDescendants)
-                Esp:Connection(player.CharacterAdded, Data.RefreshDescendants)
+                
+                -- Safe Connection for CharacterAdded
+                if player.CharacterAdded and typeof(player.CharacterAdded) == "RBXScriptSignal" then
+                    Esp:Connection(player.CharacterAdded, Data.RefreshDescendants)
+                end
                 
                 for _,ItemParentor in pairs({Items.Left, Items.Right, Items.Top, Items.Bottom}) do  
                     Esp:Connection(ItemParentor.ChildAdded, function()
@@ -919,7 +959,6 @@ local function LoadLibrary()
                     end)
                 end     
 
-                -- FIXED: Proper healthbar text container management
                 for _,HealthHolder in pairs({"Right", "Left", "Top", "Bottom"}) do
                     local Parent = Items["HealthbarTexts" .. HealthHolder]
                     if Parent then
@@ -1037,7 +1076,6 @@ local function LoadLibrary()
                     if Items.Box then Items.Box.Visible = MiscOptions.Boxes and MiscOptions.BoxType == "Box" end
                     if Items.Corners then Items.Corners.Visible = MiscOptions.Boxes and MiscOptions.BoxType == "Corner" end
                     
-                    -- FIXED: Box Fill gradient enabling
                     if MiscOptions.Boxes then
                         if MiscOptions.BoxType == "Box" then
                             if Items.Box then
@@ -1093,7 +1131,12 @@ local function LoadLibrary()
                         end
                     end
 
-                    local playerFolder = Workspace:FindFirstChild(player.Name)
+                    local playerFolder = nil
+                    -- Only look for folder if player is a real Player instance or has a Name property that matches a folder
+                    if type(player) ~= "table" then
+                        playerFolder = Workspace:FindFirstChild(player.Name)
+                    end
+
                     if playerFolder then
                         local customParts = {
                             playerFolder:FindFirstChild("Gun"),
@@ -1116,7 +1159,7 @@ local function LoadLibrary()
                             local Direction = (part.Position - Origin)
                             if Direction.Magnitude > 0 then
                                 local Result = Workspace:Raycast(Origin, Direction, rayParams)
-                                if Result and Result.Instance:IsDescendantOf(Character) or Result and Result.Instance:IsDescendantOf(playerFolder) then
+                                if Result and Result.Instance:IsDescendantOf(Character) or (playerFolder and Result.Instance:IsDescendantOf(playerFolder)) then
                                     isVisible = true
                                     break 
                                 end
@@ -1125,7 +1168,7 @@ local function LoadLibrary()
                     end
 
                     -- COLORS
-                    local targetColor = (isVisible and MiscOptions.VisCheck_Colors) and Color3.fromRGB(255, 0, 0) or (player.TeamColor.Color or Color3.new(1,1,1))
+                    local targetColor = (isVisible and MiscOptions.VisCheck_Colors) and Color3.fromRGB(255, 0, 0) or (player.TeamColor.Color or Data.Info.TeamColor or Color3.new(1,1,1))
                     local skeletonColor = (isVisible and MiscOptions.VisCheck_Colors) and Color3.new(1,0,0) or Color3.new(1,1,1)
 
                     if Items.BoxGradient then
@@ -1379,7 +1422,6 @@ local function LoadLibrary()
                         end 
 
                         if key == "Box Fill" then 
-                            -- FIXED: Enable/disable gradient properly
                             if Items.HolderGradient then
                                 Items.HolderGradient.Enabled = value
                             end
